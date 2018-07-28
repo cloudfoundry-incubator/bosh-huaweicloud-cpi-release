@@ -1,0 +1,10 @@
+---
+name: bosh_huaweicloud_cpi
+dependencies:
+- ruby_huaweicloud_cpi
+files:
+- bosh_huaweicloud_cpi/Gemfile
+- bosh_huaweicloud_cpi/Gemfile.lock
+- bosh_huaweicloud_cpi/bin/**/*
+- bosh_huaweicloud_cpi/lib/**/*
+

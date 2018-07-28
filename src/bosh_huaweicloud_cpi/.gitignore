@@ -1,0 +1,5 @@
+coverage
+.bundle
+.idea
+/_*
+vendor/cache
