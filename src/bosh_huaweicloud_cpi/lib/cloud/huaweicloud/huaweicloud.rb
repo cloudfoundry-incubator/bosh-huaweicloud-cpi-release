@@ -275,7 +275,7 @@ module Bosh::HuaweiCloud
     end
 
     def append_url_sufix(url)
-      unless url.match(/\/tokens$/)
+      unless url.match?(/\/tokens$/)
         url += '/auth' if @is_v3
         url += '/tokens'
       end

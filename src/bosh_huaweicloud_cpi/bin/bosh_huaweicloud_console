@@ -9,7 +9,7 @@
 #                                {"foo" =>"bar"})
 $LOAD_PATH.unshift File.expand_path('../lib', __dir__)
 
-require 'bosh_huaweicloudcpi'
+require 'bosh_huaweicloud_cpi'
 require 'irb'
 require 'irb/completion'
 require 'ostruct'
