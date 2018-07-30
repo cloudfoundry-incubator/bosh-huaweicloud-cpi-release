@@ -140,8 +140,8 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
       end
     end
     let(:network_spec) { { 'network_a' => manual_network_spec(ip: '10.0.0.1') } }
-    let(:expected_network_spec) { { 'network_a' => manual_network_spec(ip: '10.0.0.1', overwrites: { 'mac' => 'AA:AA:AA:AA:AA:AA', 'use_dhcp' => false }) } }
-    let(:nics) { [{ 'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8' }] }
+    let(:expected_network_spec) { { 'network_a' => manual_network_spec(ip: '10.0.0.1', overwrites: {'use_dhcp' => false }) } }
+    let(:nics) { [{ 'net_id' => 'net', 'fixed_ip' => '10.0.0.1' }] }
 
     it 'creates an Huawei Cloud server with config drive and mac addresses' do
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_spec, nil, environment)
