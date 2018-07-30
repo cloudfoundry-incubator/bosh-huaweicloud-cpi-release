@@ -2,8 +2,8 @@ module Bosh::HuaweiCloud
   class AvailabilityZoneProvider
     include Helpers
 
-    def initialize(openstack, ignore_server_availability_zone)
-      @openstack = openstack
+    def initialize(huaweicloud, ignore_server_availability_zone)
+      @huaweicloud = huaweicloud
       @ignore_server_availability_zone = ignore_server_availability_zone
     end
 
@@ -60,8 +60,8 @@ module Bosh::HuaweiCloud
     end
 
     def volumes(volume_ids)
-      fog_volume_map = @openstack.volume.volumes
-      volume_ids.map {|vid| @openstack.with_openstack {fog_volume_map.get(vid)}}
+      fog_volume_map = @huaweicloud.volume.volumes
+      volume_ids.map {|vid| @huaweicloud.with_openstack {fog_volume_map.get(vid)}}
     end
 
     def resource_pool_az_description(resource_pool_az)

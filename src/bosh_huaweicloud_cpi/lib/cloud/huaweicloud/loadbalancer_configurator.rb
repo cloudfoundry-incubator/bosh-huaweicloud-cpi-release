@@ -104,7 +104,7 @@ module Bosh::HuaweiCloud
         action_result = yield
         update_complete = true
       rescue Excon::Error::Conflict => e
-        neutron_error = @openstack.parse_openstack_response(e.response, 'NeutronError')
+        neutron_error = @openstack.parse_huaweicloud_response(e.response, 'NeutronError')
         if neutron_error&.fetch('message', '')&.include? 'PENDING_UPDATE'
           @logger.debug("Changing load balancer resource failed with '#{e.message}', unsuccessful attempts: '#{attempts}'")
           if Time.now - start_time >= @openstack.state_timeout
