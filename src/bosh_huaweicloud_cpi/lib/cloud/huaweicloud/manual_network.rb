@@ -23,11 +23,13 @@ module Bosh::HuaweiCloud
       if openstack.use_nova_networking?
         @nic['v4_fixed_ip'] = @ip
       else
-        @logger.debug("Creating port for IP #{@ip} in network #{net_id}")
-        port = create_port_for_manual_network(openstack, net_id, security_group_ids)
-        @logger.debug("Port with ID #{port.id} and MAC address #{port.mac_address} created")
-        @nic['port_id'] = port.id
-        @spec['mac'] = port.mac_address
+        # NOTE(tommylikehu): This is not required in huaweicloud, we directly use network_id instead.
+        @logger.debug("Port is not required for huaweicloud, ignore creating pod for ip: #{@ip}, direclty using network(subnet) #{net_id}")
+        @nic['uuid'] = net_id
+        #port = create_port_for_manual_network(openstack, net_id, security_group_ids)
+        #@logger.debug("Port with ID #{port.id} and MAC address #{port.mac_address} created")
+        #@nic['port_id'] = port.id
+        #@spec['mac'] = port.mac_address
       end
     end
 
