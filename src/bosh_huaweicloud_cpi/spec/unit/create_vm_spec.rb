@@ -22,7 +22,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     }
   end
 
-  def openstack_params(network_spec = { 'network_a' => dynamic_network_spec }, boot_from_volume = false)
+  def huaweicloud_params(network_spec = {'network_a' => dynamic_network_spec }, boot_from_volume = false)
     params = {
       name: "vm-#{unique_name}",
       image_ref: 'sc-id',
@@ -146,7 +146,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     it 'creates an Huawei Cloud server with config drive and mac addresses' do
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_spec, nil, environment)
 
-      expect(cloud.compute.servers).to have_received(:create).with(openstack_params(expected_network_spec).merge(config_drive: true))
+      expect(cloud.compute.servers).to have_received(:create).with(huaweicloud_params(expected_network_spec).merge(config_drive: true))
     end
   end
 
@@ -161,7 +161,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     it 'passes dns servers in server user data when present' do
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => network_spec }, nil, environment)
 
-      expect(cloud.openstack.compute.servers).to have_received(:create).with(openstack_params('network_a' => network_spec))
+      expect(cloud.openstack.compute.servers).to have_received(:create).with(huaweicloud_params('network_a' => network_spec))
       expect(@registry).to have_received(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
     end
   end
@@ -214,7 +214,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
       it 'creates an Huawei Cloud server' do
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_with_security_group, nil, environment)
 
-        expect(cloud.compute.servers).to have_received(:create).with(openstack_params(network_with_security_group))
+        expect(cloud.compute.servers).to have_received(:create).with(huaweicloud_params(network_with_security_group))
         expect(@registry).to have_received(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, network_with_security_group['network_a']))
       end
     end
@@ -238,7 +238,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
       it 'creates an Huawei Cloud server' do
         cloud.create_vm('agent-id', 'sc-id', resource_pool_with_security_group_spec, dynamic_network_without_security_group, nil, environment)
 
-        expect(cloud.compute.servers).to have_received(:create).with(openstack_params(dynamic_network_without_security_group))
+        expect(cloud.compute.servers).to have_received(:create).with(huaweicloud_params(dynamic_network_without_security_group))
         expect(@registry).to have_received(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, dynamic_network_without_security_group['network_a']))
       end
     end
@@ -259,7 +259,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
 
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => network_spec }, nil, environment)
 
-        expect(cloud.compute.servers).to have_received(:create).with(openstack_params('network_a' => network_spec))
+        expect(cloud.compute.servers).to have_received(:create).with(huaweicloud_params('network_a' => network_spec))
         expect(@registry).to have_received(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
       end
     end
@@ -372,7 +372,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
 
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec.merge('scheduler_hints' => scheduler_hints), combined_network_spec)
 
-      expect(cloud.compute.servers).to have_received(:create).with(openstack_params(combined_network_spec))
+      expect(cloud.compute.servers).to have_received(:create).with(huaweicloud_params(combined_network_spec))
     end
   end
 
@@ -389,7 +389,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
       it 'creates an Huawei Cloud server with a boot volume' do
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, dynamic_network, nil, environment)
 
-        expect(cloud.compute.servers).to have_received(:create).with(openstack_params(dynamic_network, true))
+        expect(cloud.compute.servers).to have_received(:create).with(huaweicloud_params(dynamic_network, true))
       end
     end
 
@@ -404,7 +404,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
       it 'creates an Huawei Cloud server with a boot volume' do
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec_with_boot_from_volume, dynamic_network, nil, environment)
 
-        expect(cloud.compute.servers).to have_received(:create).with(openstack_params(dynamic_network, true))
+        expect(cloud.compute.servers).to have_received(:create).with(huaweicloud_params(dynamic_network, true))
       end
     end
 
@@ -419,7 +419,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
       it 'creates an Huawei Cloud server with a boot volume' do
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, dynamic_network, nil, environment)
 
-        expect(cloud.compute.servers).to have_received(:create).with(openstack_params(dynamic_network, true))
+        expect(cloud.compute.servers).to have_received(:create).with(huaweicloud_params(dynamic_network, true))
       end
     end
   end
@@ -434,7 +434,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     it 'creates an Huawei Cloud server with config drive' do
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
 
-      expect(cloud.compute.servers).to have_received(:create).with(openstack_params.merge(config_drive: true))
+      expect(cloud.compute.servers).to have_received(:create).with(huaweicloud_params.merge(config_drive: true))
     end
   end
 
@@ -646,7 +646,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     it 'updates network settings to include use_dhcp as false' do
       expected_network_spec = dynamic_network_spec
       expected_network_spec['use_dhcp'] = false
-      expected_openstack_params = openstack_params('network_a' => expected_network_spec)
+      expected_openstack_params = huaweicloud_params('network_a' => expected_network_spec)
 
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
       expect(cloud.compute.servers).to have_received(:create).with(expected_openstack_params)
@@ -665,7 +665,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
       it 'takes the key_name from resource pool' do
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
 
-        expect(cloud.compute.servers).to have_received(:create).with(openstack_params)
+        expect(cloud.compute.servers).to have_received(:create).with(huaweicloud_params)
       end
     end
 
@@ -681,7 +681,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
       end
 
       it 'takes the key_name from CPI cloud properties' do
-        expected_openstack_params = openstack_params
+        expected_openstack_params = huaweicloud_params
         expected_openstack_params[:key_name] = 'default_key_name'
 
         expect_any_instance_of(Bosh::HuaweiCloud::VmFactory).to receive(:validate_key_exists).with(options['openstack']['default_key_name'])
@@ -765,7 +765,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     it 'creates the vm with the image id of the heavy stemcell' do
       cloud.create_vm('agent-id', 'sc-id light', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
 
-      expect(cloud.compute.servers).to have_received(:create).with(openstack_params)
+      expect(cloud.compute.servers).to have_received(:create).with(huaweicloud_params)
       expect(@registry).to have_received(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name))
     end
   end

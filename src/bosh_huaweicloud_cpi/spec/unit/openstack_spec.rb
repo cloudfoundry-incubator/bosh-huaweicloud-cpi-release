@@ -725,43 +725,43 @@ describe Bosh::HuaweiCloud::Huawei do
     it 'should return nil if response has no body' do
       response = Excon::Response.new
 
-      expect(subject.parse_openstack_response(response, 'key')).to be_nil
+      expect(subject.parse_huaweicloud_response(response, 'key')).to be_nil
     end
 
     it 'should return nil if response has an empty string body' do
       response = Excon::Response.new(body: JSON.dump(''))
 
-      expect(subject.parse_openstack_response(response, 'key')).to be_nil
+      expect(subject.parse_huaweicloud_response(response, 'key')).to be_nil
     end
 
     it 'should return nil if response has a nil body' do
       response = Excon::Response.new(body: JSON.dump(nil))
 
-      expect(subject.parse_openstack_response(response, 'key')).to be_nil
+      expect(subject.parse_huaweicloud_response(response, 'key')).to be_nil
     end
 
     it 'should return nil if response is not JSON' do
       response = Excon::Response.new(body: 'foo = bar')
 
-      expect(subject.parse_openstack_response(response, 'key')).to be_nil
+      expect(subject.parse_huaweicloud_response(response, 'key')).to be_nil
     end
 
     it 'should return nil if response is no key is found' do
       response = Excon::Response.new(body: JSON.dump('foo' => 'bar'))
 
-      expect(subject.parse_openstack_response(response, 'key')).to be_nil
+      expect(subject.parse_huaweicloud_response(response, 'key')).to be_nil
     end
 
     it 'should return the contents if key is found' do
       response = Excon::Response.new(body: JSON.dump('key' => 'foo'))
 
-      expect(subject.parse_openstack_response(response, 'key')).to eql('foo')
+      expect(subject.parse_huaweicloud_response(response, 'key')).to eql('foo')
     end
 
     it 'should return the contents of the first key found' do
       response = Excon::Response.new(body: JSON.dump('key1' => 'foo', 'key2' => 'bar'))
 
-      expect(subject.parse_openstack_response(response, 'key2', 'key1')).to eql('bar')
+      expect(subject.parse_huaweicloud_response(response, 'key2', 'key1')).to eql('bar')
     end
   end
 end

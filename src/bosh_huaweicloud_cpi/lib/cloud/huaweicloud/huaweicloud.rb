@@ -31,7 +31,7 @@ module Bosh::HuaweiCloud
       @state_timeout = options['state_timeout'] || DEFAULT_STATE_TIMEOUT
       @wait_resource_poll_interval = options['wait_resource_poll_interval']
 
-      @params = openstack_params(options)
+      @params = huaweicloud_params(options)
       @retry_options = {
         sleep: 1,
         tries: 5,
@@ -45,7 +45,7 @@ module Bosh::HuaweiCloud
         yield
       rescue Excon::Error::RequestEntityTooLarge => e
         message = "OpenStack API Request Entity Too Large error: \nCheck task debug log for details."
-        overlimit = parse_openstack_response(e.response, 'overLimit', 'overLimitFault')
+        overlimit = parse_huaweicloud_response(e.response, 'overLimit', 'overLimitFault')
 
         if overlimit
           message.insert(46, overlimit['message'])
@@ -212,7 +212,7 @@ module Bosh::HuaweiCloud
         # set of 'loop breaker' states but that doesn't seem very helpful
         # at the moment
         if state == :error || state == :failed || state == :killed
-          cloud_error("#{desc} state is #{state}, expected #{target_state.join(', ')}#{openstack_fault_message(resource)}")
+          cloud_error("#{desc} state is #{state}, expected #{target_state.join(', ')}#{huaweicloud_fault_message(resource)}")
         end
 
         break if target_state.include?(state)
@@ -230,8 +230,8 @@ module Bosh::HuaweiCloud
     # @param [Excon::Response] response Response from OpenStack API
     # @param [Array<String>] keys Keys to look up in response
     # @return [Hash] Contents at the first key found, or nil if not found
-    def parse_openstack_response(response, *keys)
-      json_body = parse_openstack_response_body(response.body)
+    def parse_huaweicloud_response(response, *keys)
+      json_body = parse_huaweicloud_response_body(response.body)
       key = keys.detect { |k| json_body.key?(k) } if json_body && !json_body.empty?
       json_body[key] if key
     end
@@ -239,11 +239,11 @@ module Bosh::HuaweiCloud
     private
 
     def error_response_message(e)
-      body = parse_openstack_response_body(e.response.body)
+      body = parse_huaweicloud_response_body(e.response.body)
       determine_message(body)
     end
 
-    def openstack_params(options)
+    def huaweicloud_params(options)
       {
         provider: 'OpenStack',
         openstack_auth_url: auth_url,
@@ -288,13 +288,13 @@ module Bosh::HuaweiCloud
       append_url_sufix(url)
     end
 
-    def openstack_fault_message(resource)
-      openstack_message = ''
+    def huaweicloud_fault_message(resource)
+      huaweicloud_message = ''
       if resource.respond_to?(:fault) && (fault = resource.fault)
-        openstack_message = "\n#{fault['message']}" if fault['message']
-        openstack_message += fault['details'] if fault['details']
+        huaweicloud_message = "\n#{fault['message']}" if fault['message']
+        huaweicloud_message += fault['details'] if fault['details']
       end
-      openstack_message
+      huaweicloud_message
     end
 
     def determine_message(body)
@@ -305,7 +305,7 @@ module Bosh::HuaweiCloud
       value ? " (#{value['message']})" : ''
     end
 
-    def parse_openstack_response_body(body)
+    def parse_huaweicloud_response_body(body)
       unless body.empty?
         begin
           return JSON.parse(body)
