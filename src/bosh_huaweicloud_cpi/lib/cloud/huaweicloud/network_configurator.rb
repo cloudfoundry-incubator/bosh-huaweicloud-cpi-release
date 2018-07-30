@@ -131,9 +131,9 @@ module Bosh::HuaweiCloud
 
     def self.matching_gateway_subnet_ids_for_ip(network_spec, openstack, ip)
       network_id = get_gateway_network_id(network_spec)
-      network_subnets = openstack.network.list_subnets('network_id' => network_id).body['subnets']
+      network_subnets = openstack.network.list_subnets().body['subnets']
       network_subnets.select do |subnet|
-        NetAddr::CIDR.create(subnet['cidr']).matches?(ip)
+        subnet['neutron_network_id'] == network_id && NetAddr::CIDR.create(subnet['cidr']).matches?(ip)
       end.map { |subnet| subnet['id'] }
     end
 
