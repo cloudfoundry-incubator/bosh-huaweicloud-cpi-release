@@ -2,7 +2,7 @@ module Bosh
   module HuaweiCloud; end
 end
 
-require 'fog/openstack'
+require 'fog/huaweicloud'
 require 'httpclient'
 require 'json'
 require 'pp'

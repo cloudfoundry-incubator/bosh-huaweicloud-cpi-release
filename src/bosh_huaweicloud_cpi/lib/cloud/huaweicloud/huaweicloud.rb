@@ -120,9 +120,9 @@ module Bosh::HuaweiCloud
             @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
 
             begin
-              @glance = Fog::Image::OpenStack::V2.new(params_without_provider)
-            rescue Fog::OpenStack::Errors::ServiceUnavailable
-              @glance = Fog::Image::OpenStack::V1.new(params_without_provider)
+              @glance = Fog::Image::HuaweiCloud::V2.new(params_without_provider)
+            rescue Fog::HuaweiCloud::Errors::ServiceUnavailable
+              @glance = Fog::Image::HuaweiCloud::V1.new(params_without_provider)
             end
           end
         rescue Excon::Error::Socket => e
@@ -145,9 +145,9 @@ module Bosh::HuaweiCloud
           Bosh::Common.retryable(@retry_options) do |tries, error|
             @logger.error("Failed #{tries} times, last failure due to: #{error.inspect}") unless error.nil?
             begin
-              @volume = Fog::Volume::OpenStack::V2.new(params_without_provider)
-            rescue Fog::OpenStack::Errors::ServiceUnavailable, Fog::Errors::NotFound
-              @volume = Fog::Volume::OpenStack::V1.new(params_without_provider)
+              @volume = Fog::Volume::HuaweiCloud::V2.new(params_without_provider)
+            rescue Fog::HuaweiCloud::Errors::ServiceUnavailable, Fog::Errors::NotFound
+              @volume = Fog::Volume::HuaweiCloud::V1.new(params_without_provider)
             end
           end
         rescue Excon::Error::Socket => e
@@ -245,15 +245,15 @@ module Bosh::HuaweiCloud
 
     def huaweicloud_params(options)
       {
-        provider: 'OpenStack',
-        openstack_auth_url: auth_url,
-        openstack_username: options['username'],
-        openstack_api_key: options['api_key'],
-        openstack_tenant: options['tenant'],
-        openstack_project_name: options['project'],
-        openstack_domain_name: options['domain'],
-        openstack_region: options['region'],
-        openstack_endpoint_type: options['endpoint_type'],
+        provider: 'HuaweiCloud',
+        huaweicloud_auth_url: auth_url,
+        huaweicloud_username: options['username'],
+        huaweicloud_api_key: options['api_key'],
+        huaweicloud_tenant: options['tenant'],
+        huaweicloud_project_name: options['project'],
+        huaweicloud_domain_name: options['domain'],
+        huaweicloud_region: options['region'],
+        huaweicloud_endpoint_type: options['endpoint_type'],
         connection_options: options['connection_options'].merge(@extra_connection_options),
       }
     end

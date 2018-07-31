@@ -46,7 +46,7 @@ describe Bosh::HuaweiCloud::ManualNetwork do
 
       let(:neutron) { double(Fog::Network) }
       let(:openstack) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: false) }
-      let(:ports) { double('Fog::Network::OpenStack::Ports') }
+      let(:ports) { double('Fog::Network::HuaweiCloud::Ports') }
 
       it 'adds port_ids to nic' do
         subject.prepare(openstack, security_groups_to_be_used)
@@ -140,7 +140,7 @@ describe Bosh::HuaweiCloud::ManualNetwork do
       let(:port) { double('ports1', id: '117717c1-81cb-4ac4-96ab-99aaf1be9ca8', network_id: 'net', mac_address: 'AA:AA:AA:AA:AA:AA', destroy: nil) }
       let(:neutron) { double(Fog::Network) }
       let(:openstack) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: false, network: double('Fog::Network')) }
-      let(:ports) { double('Fog::Network::OpenStack::Ports') }
+      let(:ports) { double('Fog::Network::HuaweiCloud::Ports') }
 
       before(:each) do
         subject.prepare(openstack, [])

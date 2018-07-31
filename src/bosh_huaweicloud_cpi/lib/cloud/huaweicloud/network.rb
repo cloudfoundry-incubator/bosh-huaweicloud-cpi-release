@@ -25,7 +25,7 @@ module Bosh::HuaweiCloud
     # Configures given server
     #
     # @param [Bosh::HuaweiCloud::Huawei] openstack
-    # @param [Fog::Compute::OpenStack::Server] server OpenStack server to configure
+    # @param [Fog::Compute::HuaweiCloud::Server] server OpenStack server to configure
     def configure(openstack, server); end
 
     def prepare(openstack, security_groups); end

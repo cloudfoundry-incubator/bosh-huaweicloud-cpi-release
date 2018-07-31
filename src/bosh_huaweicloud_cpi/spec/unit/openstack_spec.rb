@@ -140,8 +140,8 @@ describe Bosh::HuaweiCloud::Huawei do
   end
 
   [{ clazz: Fog::Compute, name: 'Compute', method_name: :compute },
-   { clazz: Fog::Image::OpenStack::V2, name: 'Image', method_name: :image },
-   { clazz: Fog::Volume::OpenStack::V2, name: 'Volume', method_name: :volume },
+   { clazz: Fog::Image::HuaweiCloud::V2, name: 'Image', method_name: :image },
+   { clazz: Fog::Volume::HuaweiCloud::V2, name: 'Volume', method_name: :volume },
    { clazz: Fog::Network, name: 'Network', method_name: :network }].each do |fog|
     describe (fog[:name]).to_s do
       let(:retry_options_overwrites) {

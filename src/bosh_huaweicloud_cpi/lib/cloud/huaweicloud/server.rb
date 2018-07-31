@@ -92,7 +92,7 @@ module Bosh::HuaweiCloud
           cloud_error_message = "VM creation with name '#{create_vm_params[:name]}' received a timeout. " \
                                 "The VM might still have been created by OpenStack.\nOriginal message: "
           raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
-        rescue Excon::Error::BadRequest, Excon::Error::NotFound, Fog::Compute::OpenStack::NotFound => e
+        rescue Excon::Error::BadRequest, Excon::Error::NotFound, Fog::Compute::HuaweiCloud::NotFound => e
           raise e if @openstack.use_nova_networking?
           not_existing_net_ids = not_existing_net_ids(create_vm_params[:nics])
           raise e if not_existing_net_ids.empty?

@@ -61,8 +61,8 @@ describe Bosh::HuaweiCloud::FloatingIp do
       allow(compute).to receive(:get_server_details).and_return(get_server_response)
     }
 
-    let(:port_collection) { double('Fog::Network::OpenStack::Ports', all: [port_model]) }
-    let(:port_model) { double('Fog::Network::OpenStack::Port', id: 'port-id') }
+    let(:port_collection) { double('Fog::Network::HuaweiCloud::Ports', all: [port_model]) }
+    let(:port_model) { double('Fog::Network::HuaweiCloud::Port', id: 'port-id') }
 
     before(:each) {
       allow(network).to receive(:ports).and_return(port_collection)

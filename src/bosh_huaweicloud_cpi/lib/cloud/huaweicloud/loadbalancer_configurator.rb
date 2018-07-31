@@ -79,7 +79,7 @@ module Bosh::HuaweiCloud
           retry_on_conflict_pending_update(pool_id) {
             @openstack.network.delete_lbaas_pool_member(pool_id, membership_id)
           }
-        rescue Fog::Network::OpenStack::NotFound
+        rescue Fog::Network::HuaweiCloud::NotFound
           @logger.debug("Skipping deletion of load balancer pool membership. Member with pool_id '#{pool_id}' and membership_id '#{membership_id}' does not exist.")
         rescue LoadBalancerResource::NotFound => e
           @logger.debug("Skipping deletion of load balancer pool membership because load balancer resource cannot be found. #{e.message}")
@@ -129,7 +129,7 @@ module Bosh::HuaweiCloud
                             pool_id,
                           )
           extract_loadbalancer_id(loadbalancers, pool_id)
-        rescue Fog::Network::OpenStack::NotFound => e
+        rescue Fog::Network::HuaweiCloud::NotFound => e
           raise LoadBalancerResource::NotFound, "Load balancer ID could not be determined because pool with ID '#{pool_id}' was not found. Reason: #{e.message}"
         end
       end

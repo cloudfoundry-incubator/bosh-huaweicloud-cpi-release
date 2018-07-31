@@ -23,35 +23,31 @@ module Bosh::HuaweiCloud
       if openstack.use_nova_networking?
         @nic['v4_fixed_ip'] = @ip
       else
-        # NOTE: Port ID is not required in huaweicloud, we directly use network_id and fixed ips instead
-        # here. See document: https://support.huaweicloud.com/api-ecs/zh-cn_topic_0068473331.html#ZH-CN_TOPIC_0068473331__zh-cn_topic_0057972661_table9995892105551
-        @logger.debug("Port is not required for huaweicloud, ignore creating pod for ip: #{@ip}, direclty using network(subnet) #{net_id}")
-        if net_id
-          @nic['net_id'] = net_id
-          @nic['fixed_ip'] = @ip
-        elsif vpc_id
-          @logger.debug("'net_id' is not configured, use vpc instead.")
-          openstack.with_openstack do
-            subs = openstack.network.subnets.all(vpc_id:vpc_id).body['subnets'].select do |sub|
-              NetAddr::CIDR.create(sub['cidr']).matches?(@ip)
-            end
-            @nic['net_id'] = subs.first
-            @nic['fixed_ip'] = @ip
-          end
-        end
-        if @nic['net_id'].nil?
-          error_message = "Can't find suitable network(subnet) according provided 'ip' and 'vpc_id' in the network spec."
-          raise Bosh::Clouds::VMCreationFailed.new(false), error_message
-        end
+        @logger.debug("Creating port for IP #{@ip} in network #{net_id}")
+        port = create_port_for_manual_network(openstack, net_id, security_group_ids)
+        @logger.debug("Port with ID #{port.id} and MAC address #{port.mac_address} created")
+        @nic['port_id'] = port.id
+        @spec['mac'] = port.mac_address
       end
+    end
+
+    def create_port_for_manual_network(openstack, net_id, security_group_ids)
+      port_properties = {
+        network_id: net_id,
+        fixed_ips: [{ ip_address: @ip }],
+        security_groups: security_group_ids,
+      }
+      if @allowed_address_pairs
+        cloud_error("Configured VRRP port with ip '#{@allowed_address_pairs}' does not exist.") unless vrrp_port?(openstack)
+        port_properties[:allowed_address_pairs] = [{ ip_address: @allowed_address_pairs }]
+      end
+      openstack.with_openstack { openstack.network.ports.create(port_properties) }
     end
 
     def cleanup(openstack)
       unless openstack.use_nova_networking?
-        unless @nic['port_id'].nil?
-          port = openstack.network.ports.get(@nic['port_id'])
-          port&.destroy
-        end
+        port = openstack.network.ports.get(@nic['port_id'])
+        port&.destroy
       end
     end
 
