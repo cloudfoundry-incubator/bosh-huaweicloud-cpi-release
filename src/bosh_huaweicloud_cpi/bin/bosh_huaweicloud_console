@@ -63,7 +63,7 @@ end
 
 puts '=> Welcome to BOSH Huawei CPI console'
 puts "You can use 'cpi' to access CPI methods"
-puts "You can use 'openstack' to access Fog::Compute::OpenStack methods"
-puts "You can use 'glance' to access Fog::Image::OpenStack methods"
+puts "You can use 'openstack' to access Fog::Compute::HuaweiCloud methods"
+puts "You can use 'glance' to access Fog::Image::HuaweiCloud methods"
 
 IRB.start

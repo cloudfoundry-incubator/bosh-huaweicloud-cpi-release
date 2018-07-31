@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'fog/compute/openstack/models/server'
+require 'fog/compute/huaweicloud/models/server'
 
 describe Bosh::HuaweiCloud::NetworkConfigurator do
   def set_security_groups(spec, security_groups)
@@ -463,7 +463,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
   end
 
   describe '.gateway_ip' do
-    let(:server) { instance_double(Fog::Compute::OpenStack::Server) }
+    let(:server) { instance_double(Fog::Compute::HuaweiCloud::Server) }
 
     context 'when gateway network is a manual network' do
       let(:network_spec) {
@@ -529,7 +529,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
   end
 
   describe '.matching_gateway_subnet_ids_for_ip' do
-    let(:neutron) { double(Fog::Network::OpenStack) }
+    let(:neutron) { double(Fog::Network::HuaweiCloud) }
     let(:list_subnets_response) { double('list_subnets', body: { 'subnets' => subnets }) }
 
     before(:each) do

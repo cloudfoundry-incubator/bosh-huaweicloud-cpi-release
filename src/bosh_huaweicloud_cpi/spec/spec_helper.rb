@@ -86,18 +86,18 @@ def mock_cloud(options = nil)
   key_pairs = double('key_pairs')
   security_groups = [double('default_sec_group', id: 'default_sec_group_id', name: 'default')]
 
-  image = double(Fog::Image::OpenStack::V2)
-  allow(Fog::Image::OpenStack::V2).to receive(:new).and_return(image)
+  image = double(Fog::Image::HuaweiCloud::V2)
+  allow(Fog::Image::HuaweiCloud::V2).to receive(:new).and_return(image)
   allow(image).to receive(:images).and_return(images)
 
-  volume = double(Fog::Volume::OpenStack::V2)
+  volume = double(Fog::Volume::HuaweiCloud::V2)
   allow(volume).to receive(:volumes).and_return(volumes)
   allow(volume).to receive(:snapshots).and_return(snapshots)
-  allow(Fog::Volume::OpenStack::V2).to receive(:new).and_return(volume)
+  allow(Fog::Volume::HuaweiCloud::V2).to receive(:new).and_return(volume)
 
-  network = double(Fog::Network::OpenStack)
+  network = double(Fog::Network::HuaweiCloud)
   allow(network).to receive(:security_groups).and_return(security_groups)
-  allow(Fog::Network::OpenStack).to receive(:new).and_return(network)
+  allow(Fog::Network::HuaweiCloud).to receive(:new).and_return(network)
 
   compute = double(Fog::Compute)
 
@@ -119,9 +119,9 @@ end
 def mock_glance_v1(options = nil)
   cloud = mock_cloud(options)
 
-  image = double(Fog::Image::OpenStack::V1, images: double('images'))
+  image = double(Fog::Image::HuaweiCloud::V1, images: double('images'))
   allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(image)
-  allow(image).to receive(:class).and_return(Fog::Image::OpenStack::V1)
+  allow(image).to receive(:class).and_return(Fog::Image::HuaweiCloud::V1)
 
   yield image if block_given?
 
@@ -131,9 +131,9 @@ end
 def mock_glance_v2(options = nil)
   cloud = mock_cloud(options)
 
-  image = double(Fog::Image::OpenStack::V2, images: double('images'))
+  image = double(Fog::Image::HuaweiCloud::V2, images: double('images'))
   allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(image)
-  allow(image).to receive(:class).and_return(Fog::Image::OpenStack::V2)
+  allow(image).to receive(:class).and_return(Fog::Image::HuaweiCloud::V2)
 
   yield image if block_given?
 

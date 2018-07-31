@@ -17,7 +17,7 @@ module Bosh::HuaweiCloud
       if @cloud_properties.key?('image_id')
         LightStemcellCreator.new(@logger, @openstack, @cloud_properties)
       else
-        if @openstack.image.class.to_s.include?('Fog::Image::OpenStack::V1')
+        if @openstack.image.class.to_s.include?('Fog::Image::HuaweiCloud::V1')
           StemcellCreatorV1.new(@logger, @openstack, @cloud_properties)
         else
           StemcellCreatorV2.new(@logger, @openstack, @cloud_properties)

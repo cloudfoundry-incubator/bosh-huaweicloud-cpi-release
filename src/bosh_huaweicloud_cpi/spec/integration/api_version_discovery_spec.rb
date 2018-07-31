@@ -23,13 +23,13 @@ describe Bosh::HuaweiCloud::Cloud do
       end
 
       it 'CPI uses V1' do
-        expect(@config.create_cpi.glance.class.to_s).to start_with('Fog::Image::OpenStack::V1')
+        expect(@config.create_cpi.glance.class.to_s).to start_with('Fog::Image::HuaweiCloud::V1')
       end
     end
 
     context 'when V2 is available' do
       it 'CPI uses V2' do
-        expect(@config.create_cpi.glance.class.to_s).to start_with('Fog::Image::OpenStack::V2')
+        expect(@config.create_cpi.glance.class.to_s).to start_with('Fog::Image::HuaweiCloud::V2')
       end
     end
   end
@@ -41,13 +41,13 @@ describe Bosh::HuaweiCloud::Cloud do
       end
 
       it 'CPI uses V1' do
-        expect(@config.create_cpi.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V1')
+        expect(@config.create_cpi.volume.class.to_s).to start_with('Fog::Volume::HuaweiCloud::V1')
       end
     end
 
     context 'when V2 is available' do
       it 'CPI uses V2' do
-        expect(@config.create_cpi.volume.class.to_s).to start_with('Fog::Volume::OpenStack::V2')
+        expect(@config.create_cpi.volume.class.to_s).to start_with('Fog::Volume::HuaweiCloud::V2')
       end
     end
   end

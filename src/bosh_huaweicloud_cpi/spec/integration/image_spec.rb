@@ -20,7 +20,7 @@ describe Bosh::HuaweiCloud::Cloud do
     let(:cpi_for_stemcell) { @config.create_cpi }
 
     before do
-      expect(cpi_for_stemcell.glance.class.to_s).to start_with('Fog::Image::OpenStack::V2')
+      expect(cpi_for_stemcell.glance.class.to_s).to start_with('Fog::Image::HuaweiCloud::V2')
     end
 
     after do
@@ -44,10 +44,10 @@ describe Bosh::HuaweiCloud::Cloud do
     let(:cpi_for_stemcell) { @config.create_cpi }
 
     def force_image_v1
-      allow(Fog::Image::OpenStack::V2).to receive(:new).and_raise(Fog::OpenStack::Errors::ServiceUnavailable)
+      allow(Fog::Image::HuaweiCloud::V2).to receive(:new).and_raise(Fog::HuaweiCloud::Errors::ServiceUnavailable)
       begin
         cpi_for_stemcell.glance
-      rescue Fog::OpenStack::Errors::ServiceUnavailable
+      rescue Fog::HuaweiCloud::Errors::ServiceUnavailable
         pending 'Image is not available in version v1.'
         raise
       end
@@ -63,7 +63,7 @@ describe Bosh::HuaweiCloud::Cloud do
     end
 
     it 'uploads and deletes a stemcell' do
-      expect(cpi_for_stemcell.glance.class.to_s).to start_with('Fog::Image::OpenStack::V1')
+      expect(cpi_for_stemcell.glance.class.to_s).to start_with('Fog::Image::HuaweiCloud::V1')
 
       @stemcell_id, stemcell_manifest = upload_stemcell(cpi_for_stemcell, @config.stemcell_path)
       expect(@stemcell_id).to_not be_nil
