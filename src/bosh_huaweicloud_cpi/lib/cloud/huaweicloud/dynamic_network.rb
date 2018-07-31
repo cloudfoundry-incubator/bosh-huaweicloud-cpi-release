@@ -12,7 +12,7 @@ module Bosh::HuaweiCloud
     end
 
     def prepare(_huaweicloud, _security_group_ids)
-      cloud_error("Network with id '#{net_id}' is a dynamic network. VRRP is not supported for dynamic networks") if @allowed_address_pairs
+      cloud_error("Network with id '#{subnet_id}' is a dynamic network. VRRP is not supported for dynamic networks") if @allowed_address_pairs
     end
   end
 end

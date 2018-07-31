@@ -51,7 +51,7 @@ describe Bosh::HuaweiCloud::ManualNetwork do
       it 'adds port_ids to nic' do
         subject.prepare(openstack, security_groups_to_be_used)
 
-        expect(subject.nic).to eq('net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8')
+        expect(subject.nic).to eq('subnet_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8')
       end
 
       it 'adds MAC addresses to network spec' do
@@ -120,7 +120,7 @@ describe Bosh::HuaweiCloud::ManualNetwork do
       it "adds 'v4_fixed_ip' to nic" do
         subject.prepare(openstack, security_groups_to_be_used)
 
-        expect(subject.nic).to eq('net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1')
+        expect(subject.nic).to eq('subnet_id' => 'net', 'v4_fixed_ip' => '10.0.0.1')
       end
     end
   end

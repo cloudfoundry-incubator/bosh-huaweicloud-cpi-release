@@ -111,7 +111,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
 
       let(:network_spec) {
         {
-          'network_a' => manual_network_spec(net_id: 'sub-net-id', ip: '10.10.10.10'),
+          'network_a' => manual_network_spec(subnet_id: 'sub-net-id', ip: '10.10.10.10'),
           'vip_network' => vip_network_spec,
         } }
 
@@ -268,7 +268,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
     context 'when create_membership raises an error' do
       let(:network_spec) {
         {
-          'network_a' => manual_network_spec(net_id: 'sub-net-id', ip: '10.10.10.10'),
+          'network_a' => manual_network_spec(subnet_id: 'sub-net-id', ip: '10.10.10.10'),
         }
       }
 
@@ -321,7 +321,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
 
       let(:network_spec) {
         {
-          'network_a' => manual_network_spec(net_id: 'sub-net-id', ip: '10.10.10.10'),
+          'network_a' => manual_network_spec(subnet_id: 'sub-net-id', ip: '10.10.10.10'),
           'vip_network' => vip_network_spec,
         }
       }
@@ -354,7 +354,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
     context 'when multiple subnet ids match' do
       let(:network_spec) {
         {
-          'network_a' => manual_network_spec(net_id: 'net-id', ip: '10.10.10.10'),
+          'network_a' => manual_network_spec(subnet_id: 'net-id', ip: '10.10.10.10'),
         }
       }
 
@@ -369,7 +369,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
     context 'when no subnet id match or no subnet exists' do
       let(:network_spec) {
         {
-          'network_a' => manual_network_spec(net_id: 'net-id', ip: '10.10.10.10'),
+          'network_a' => manual_network_spec(subnet_id: 'net-id', ip: '10.10.10.10'),
         }
       }
 

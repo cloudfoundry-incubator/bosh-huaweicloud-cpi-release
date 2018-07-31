@@ -23,17 +23,17 @@ module Bosh::HuaweiCloud
       if huaweicloud.use_nova_networking?
         @nic['v4_fixed_ip'] = @ip
       else
-        @logger.debug("Creating port for IP #{@ip} in network #{net_id}")
-        port = create_port_for_manual_network(huaweicloud, net_id, security_group_ids)
+        @logger.debug("Creating port for IP #{@ip} in network #{subnet_id}")
+        port = create_port_for_manual_network(huaweicloud, subnet_id, security_group_ids)
         @logger.debug("Port with ID #{port.id} and MAC address #{port.mac_address} created")
         @nic['port_id'] = port.id
         @spec['mac'] = port.mac_address
       end
     end
 
-    def create_port_for_manual_network(huaweicloud, net_id, security_group_ids)
+    def create_port_for_manual_network(huaweicloud, subnet_id, security_group_ids)
       port_properties = {
-        network_id: net_id,
+        network_id: subnet_id,
         fixed_ips: [{ ip_address: @ip }],
         security_groups: security_group_ids,
       }

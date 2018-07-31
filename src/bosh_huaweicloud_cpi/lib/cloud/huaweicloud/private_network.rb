@@ -7,12 +7,13 @@ module Bosh::HuaweiCloud
     def initialize(name, spec)
       super
       @nic = {}
-      @nic['net_id'] = net_id if net_id
+      # TODO: Huawei use subnet_id instead, we need to update the fog-huaweicloud as well to support this(subnet_id=>uuid).
+      @nic['subnet_id'] = subnet_id if subnet_id
     end
 
-    def net_id
+    def subnet_id
       @spec.fetch('cloud_properties', {})
-           .fetch('net_id', nil)
+           .fetch('subnet_id', nil)
     end
   end
 end

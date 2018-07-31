@@ -28,14 +28,14 @@ describe Bosh::HuaweiCloud::Cloud do
   before { allow(Bosh::Cpi::RegistryClient).to receive(:new).and_return(double('registry').as_null_object) }
 
   describe 'dynamic network' do
-    # even for dynamic networking we need to set the net_id as we may be in an environment
+    # even for dynamic networking we need to set the subnet_id as we may be in an environment
     # with multiple networks
     let(:network_spec) do
       {
         'default' => {
           'type' => 'dynamic',
           'cloud_properties' => {
-            'net_id' => @config.net_id,
+            'subnet_id' => @config.subnet_id,
           },
         },
       }
@@ -93,7 +93,7 @@ describe Bosh::HuaweiCloud::Cloud do
           'type' => 'manual',
           'ip' => @config.manual_ip,
           'cloud_properties' => {
-            'net_id' => @config.net_id,
+            'subnet_id' => @config.subnet_id,
           },
         },
       }
@@ -130,14 +130,14 @@ describe Bosh::HuaweiCloud::Cloud do
             'type' => 'manual',
             'ip' => @config.no_dhcp_manual_ip_1,
             'cloud_properties' => {
-              'net_id' => @config.net_id_no_dhcp_1,
+              'subnet_id' => @config.net_id_no_dhcp_1,
             },
           },
           'network_2' => {
             'type' => 'manual',
             'ip' => @config.no_dhcp_manual_ip_2,
             'cloud_properties' => {
-              'net_id' => @config.net_id_no_dhcp_2,
+              'subnet_id' => @config.net_id_no_dhcp_2,
             },
             'use_dhcp' => false,
           },
@@ -205,7 +205,7 @@ describe Bosh::HuaweiCloud::Cloud do
           'type' => 'manual',
           'ip' => @config.manual_ip,
           'cloud_properties' => {
-            'net_id' => @config.net_id,
+            'subnet_id' => @config.subnet_id,
           },
         },
       }
@@ -269,7 +269,7 @@ describe Bosh::HuaweiCloud::Cloud do
         'default' => {
           'type' => 'dynamic',
           'cloud_properties' => {
-            'net_id' => @config.net_id,
+            'subnet_id' => @config.subnet_id,
             'security_groups' => [security_group],
           },
         },
@@ -305,7 +305,7 @@ describe Bosh::HuaweiCloud::Cloud do
         'default' => {
           'type' => 'dynamic',
           'cloud_properties' => {
-            'net_id' => @config.net_id,
+            'subnet_id' => @config.subnet_id,
           },
         },
       }
@@ -325,7 +325,7 @@ describe Bosh::HuaweiCloud::Cloud do
           'type' => 'manual',
           'ip' => @config.manual_ip,
           'cloud_properties' => {
-            'net_id' => @config.net_id,
+            'subnet_id' => @config.subnet_id,
           },
         },
         'vip' => {
@@ -341,9 +341,9 @@ describe Bosh::HuaweiCloud::Cloud do
       end
     end
 
-    def no_port_remaining?(net_id, ip)
+    def no_port_remaining?(subnet_id, ip)
       openstack.network.ports
-               .select { |port| port.network_id == net_id }
+               .select { |port| port.network_id == subnet_id }
                .none? { |port| port.fixed_ips.detect { |ips| ips['ip_address'] == ip } }
     end
 
@@ -353,7 +353,7 @@ describe Bosh::HuaweiCloud::Cloud do
       }.to raise_error Bosh::Clouds::VMCreationFailed, /Floating IP '255.255.255.255' not allocated/
 
       expect(no_active_vm_with_ip?(@config.manual_ip)).to be
-      expect(no_port_remaining?(@config.net_id, @config.manual_ip)).to eq(true)
+      expect(no_port_remaining?(@config.subnet_id, @config.manual_ip)).to eq(true)
     end
 
     it 'better error message for wrong net ID' do
@@ -361,7 +361,7 @@ describe Bosh::HuaweiCloud::Cloud do
         'default' => {
           'type' => 'dynamic',
           'cloud_properties' => {
-            'net_id' => '00000000-0000-0000-0000-000000000000',
+            'subnet_id' => '00000000-0000-0000-0000-000000000000',
           },
         },
       }
@@ -378,7 +378,7 @@ describe Bosh::HuaweiCloud::Cloud do
         'default' => {
           'type' => 'dynamic',
           'cloud_properties' => {
-            'net_id' => @config.net_id,
+            'subnet_id' => @config.subnet_id,
           },
         },
       }
@@ -402,7 +402,7 @@ describe Bosh::HuaweiCloud::Cloud do
         'default' => {
           'type' => 'dynamic',
             'cloud_properties' => {
-              'net_id' => @config.net_id,
+              'subnet_id' => @config.subnet_id,
             },
         },
       }
@@ -451,7 +451,7 @@ describe Bosh::HuaweiCloud::Cloud do
           'default' => {
             'type' => 'dynamic',
             'cloud_properties' => {
-              'net_id' => @config.net_id,
+              'subnet_id' => @config.subnet_id,
             },
           },
         }
@@ -495,7 +495,7 @@ describe Bosh::HuaweiCloud::Cloud do
         'default' => {
           'type' => 'dynamic',
           'cloud_properties' => {
-            'net_id' => @config.net_id,
+            'subnet_id' => @config.subnet_id,
           },
         },
       }
@@ -550,7 +550,7 @@ describe Bosh::HuaweiCloud::Cloud do
         'default' => {
           'type' => 'dynamic',
           'cloud_properties' => {
-            'net_id' => @config.net_id,
+            'subnet_id' => @config.subnet_id,
           },
         },
       }
@@ -588,7 +588,7 @@ describe Bosh::HuaweiCloud::Cloud do
         'default' => {
           'type' => 'dynamic',
           'cloud_properties' => {
-            'net_id' => @config.net_id,
+            'subnet_id' => @config.subnet_id,
           },
         },
       }

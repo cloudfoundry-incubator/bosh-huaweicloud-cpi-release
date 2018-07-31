@@ -183,8 +183,8 @@ module Bosh::HuaweiCloud
       begin
         network = @openstack.network
         nics.each do |nic|
-          if nic['net_id']
-            result << nic['net_id'] unless network.networks.get(nic['net_id'])
+          if nic['subnet_id']
+            result << nic['subnet_id'] unless network.networks.get(nic['subnet_id'])
           end
         end
       rescue StandardError => e

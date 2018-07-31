@@ -141,7 +141,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     end
     let(:network_spec) { { 'network_a' => manual_network_spec(ip: '10.0.0.1') } }
     let(:expected_network_spec) { { 'network_a' => manual_network_spec(ip: '10.0.0.1', overwrites: { 'mac' => 'AA:AA:AA:AA:AA:AA', 'use_dhcp' => false }) } }
-    let(:nics) { [{ 'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8' }] }
+    let(:nics) { [{ 'subnet_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8' }] }
 
     it 'creates an Huawei Cloud server with config drive and mac addresses' do
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_spec, nil, environment)
@@ -248,14 +248,14 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     context 'with nic' do
       let(:nics) do
         [
-          { 'net_id' => 'foo' },
+          { 'subnet_id' => 'foo' },
         ]
       end
 
       it 'creates an Huawei Cloud server with nic for dynamic network' do
         network_spec = dynamic_network_spec
         network_spec['cloud_properties'] ||= {}
-        network_spec['cloud_properties']['net_id'] = nics[0]['net_id']
+        network_spec['cloud_properties']['subnet_id'] = nics[0]['subnet_id']
 
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => network_spec }, nil, environment)
 
@@ -283,12 +283,12 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     let(:several_manual_networks) do
       {
         'network_a' => manual_network_spec(ip: '10.0.0.1'),
-        'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2'),
+        'network_b' => manual_network_spec(subnet_id: 'bar', ip: '10.0.0.2'),
       }
     end
     let(:manual_network) { { 'network_a' => manual_network_spec(ip: '10.0.0.1') } }
 
-    let(:nics) { [{ 'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1' }, { 'net_id' => 'bar', 'v4_fixed_ip' => '10.0.0.2' }] }
+    let(:nics) { [{ 'subnet_id' => 'net', 'v4_fixed_ip' => '10.0.0.1' }, { 'subnet_id' => 'bar', 'v4_fixed_ip' => '10.0.0.2' }] }
     let(:configured_security_groups) { %w[default default] }
     let(:options) do
       cloud_options = mock_cloud_options
@@ -476,7 +476,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
         allow_any_instance_of(Bosh::HuaweiCloud::NetworkConfigurator).to receive(:prepare)
         allow_any_instance_of(Bosh::HuaweiCloud::NetworkConfigurator).to receive(:cleanup)
         allow(networks).to receive(:get).and_return('some_network')
-        network_with_different_net_id = { 'network_b' => manual_network_spec(net_id: 'some_other_id') }
+        network_with_different_net_id = { 'network_b' => manual_network_spec(subnet_id: 'some_other_id') }
 
         expect {
           cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_with_different_net_id, nil, environment)
@@ -491,7 +491,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
         it 'raises the original error' do
           allow_any_instance_of(Bosh::HuaweiCloud::NetworkConfigurator).to receive(:prepare)
           allow_any_instance_of(Bosh::HuaweiCloud::NetworkConfigurator).to receive(:cleanup)
-          network_with_different_net_id = { 'network_b' => manual_network_spec(net_id: 'some_other_id') }
+          network_with_different_net_id = { 'network_b' => manual_network_spec(subnet_id: 'some_other_id') }
 
           expect {
             cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_with_different_net_id, nil, environment)

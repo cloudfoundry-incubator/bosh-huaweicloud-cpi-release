@@ -10,7 +10,7 @@ describe Bosh::HuaweiCloud::DynamicNetwork do
 
       expect {
         subject.prepare(nil, [])
-      }.to raise_error Bosh::Clouds::CloudError, "Network with id '#{subject.net_id}' is a dynamic network. VRRP is not supported for dynamic networks"
+      }.to raise_error Bosh::Clouds::CloudError, "Network with id '#{subject.subnet_id}' is a dynamic network. VRRP is not supported for dynamic networks"
     end
   end
 
