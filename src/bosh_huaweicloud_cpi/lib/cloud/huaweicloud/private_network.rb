@@ -14,5 +14,10 @@ module Bosh::HuaweiCloud
       @spec.fetch('cloud_properties', {})
            .fetch('net_id', nil)
     end
+
+    def vpc_id
+      @spec.fetch('cloud_properties', {})
+           .fetch('vpc_id', nil)
+    end
   end
 end

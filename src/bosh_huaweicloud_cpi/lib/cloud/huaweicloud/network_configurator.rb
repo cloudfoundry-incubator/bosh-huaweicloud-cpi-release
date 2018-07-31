@@ -93,12 +93,13 @@ module Bosh::HuaweiCloud
         @dynamic_network = network
       when 'manual'
         net_id = NetworkConfigurator.extract_net_id(network_spec)
-        cloud_error('Manual network must have net_id') if net_id.nil?
         cloud_error("Manual network with id #{net_id} is already defined") if @net_ids.include?(net_id)
         network = ManualNetwork.new(name, network_spec)
         @security_groups += extract_security_groups(network_spec)
         @networks << network
-        @net_ids << net_id
+        unless net_id.nil?
+          @net_ids << net_id
+        end
       when 'vip'
         cloud_error('Only one VIP network per instance should be defined') if @vip_network
         @vip_network = VipNetwork.new(name, network_spec)
@@ -131,10 +132,10 @@ module Bosh::HuaweiCloud
 
     def self.matching_gateway_subnet_ids_for_ip(network_spec, openstack, ip)
       network_id = get_gateway_network_id(network_spec)
-      network_subnets = openstack.network.list_subnets('network_id' => network_id).body['subnets']
+      network_subnets = openstack.network.list_subnets().body['subnets']
       network_subnets.select do |subnet|
-        NetAddr::CIDR.create(subnet['cidr']).matches?(ip)
-      end.map { |subnet| subnet['id'] }
+        subnet['neutron_network_id'] == network_id && NetAddr::CIDR.create(subnet['cidr']).matches?(ip)
+      end.map { |subnet| subnet['neutron_subnet_id'] }
     end
 
     def self.gateway_ip(network_spec, openstack, server)
