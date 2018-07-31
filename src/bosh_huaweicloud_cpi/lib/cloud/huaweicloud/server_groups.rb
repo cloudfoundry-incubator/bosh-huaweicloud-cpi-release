@@ -11,7 +11,7 @@ module Bosh::HuaweiCloud
 
     def find_or_create(uuid, bosh_group)
       name = name(uuid, bosh_group)
-      @openstack.with_openstack do
+      @openstack.with_huaweicloud do
         lock_by_file(bosh_group) do
           begin
             server_group = find(name)
@@ -42,7 +42,7 @@ module Bosh::HuaweiCloud
     end
 
     def delete_if_no_members(uuid, bosh_group)
-      @openstack.with_openstack do
+      @openstack.with_huaweicloud do
         lock_by_file(bosh_group) do
           server_group = find(name(uuid, bosh_group))
           @openstack.compute.delete_server_group(server_group.id) if server_group&.members&.empty?

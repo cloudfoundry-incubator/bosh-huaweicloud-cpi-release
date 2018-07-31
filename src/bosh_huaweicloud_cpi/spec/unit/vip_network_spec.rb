@@ -21,16 +21,16 @@ describe Bosh::HuaweiCloud::VipNetwork do
     end
 
     context 'floating IP is provided' do
-      let(:openstack) { double('openstack') }
-      before { allow(openstack).to receive(:with_openstack) { |&block| block.call } }
+      let(:huaweicloud) { double('huaweicloud') }
+      before { allow(huaweicloud).to receive(:with_huaweicloud) { |&block| block.call } }
 
       it 'calls FloatingIp.reassiciate' do
         server = double('server')
         allow(Bosh::HuaweiCloud::FloatingIp).to receive(:reassociate)
 
-        subject.configure(openstack, server, 'network_id')
+        subject.configure(huaweicloud, server, 'network_id')
 
-        expect(Bosh::HuaweiCloud::FloatingIp).to have_received(:reassociate).with(openstack, '10.0.0.1', server, 'network_id')
+        expect(Bosh::HuaweiCloud::FloatingIp).to have_received(:reassociate).with(huaweicloud, '10.0.0.1', server, 'network_id')
       end
     end
   end

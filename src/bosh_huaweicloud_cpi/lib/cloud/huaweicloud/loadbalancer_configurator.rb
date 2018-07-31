@@ -28,7 +28,7 @@ module Bosh::HuaweiCloud
     end
 
     def create_membership(pool_id, ip, port, subnet_id)
-      @openstack.with_openstack do
+      @openstack.with_huaweicloud do
         membership_id = nil
         begin
           @logger.debug("Creating load balancer pool membership with pool id '#{pool_id}', ip '#{ip}', and port '#{port}'.")
@@ -73,7 +73,7 @@ module Bosh::HuaweiCloud
     end
 
     def remove_vm_from_pool(pool_id, membership_id)
-      @openstack.with_openstack do
+      @openstack.with_huaweicloud do
         begin
           @logger.debug("Deleting load balancer pool membership with pool id '#{pool_id}' and membership id '#{membership_id}'.")
           retry_on_conflict_pending_update(pool_id) {
@@ -120,7 +120,7 @@ module Bosh::HuaweiCloud
     end
 
     def loadbalancer_id(pool_id)
-      @openstack.with_openstack do
+      @openstack.with_huaweicloud do
         begin
           pool_response = @openstack.network.get_lbaas_pool(pool_id)
           loadbalancers = pool_response.body['pool']['loadbalancers'] ||
@@ -144,7 +144,7 @@ module Bosh::HuaweiCloud
         raise LoadBalancerResource::NotSupportedConfiguration, "More than one listener is associated with load balancer pool '#{pool_id}'. It is not possible to verify the status of the load balancer responsible for the pool membership."
       end
 
-      listener_response = @openstack.with_openstack { @openstack.network.get_lbaas_listener(listeners[0]['id']) }
+      listener_response = @openstack.with_huaweicloud { @openstack.network.get_lbaas_listener(listeners[0]['id']) }
       listener_response.body['listener']['loadbalancers']
     end
 
@@ -189,7 +189,7 @@ module Bosh::HuaweiCloud
     end
 
     def openstack_pool_id(pool_name)
-      pools = @openstack.with_openstack {
+      pools = @openstack.with_huaweicloud {
         @openstack.network.list_lbaas_pools('name' => pool_name).body['pools']
       }
 

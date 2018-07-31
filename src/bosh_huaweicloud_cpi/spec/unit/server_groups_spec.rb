@@ -30,7 +30,7 @@ describe Bosh::HuaweiCloud::ServerGroups do
 
   before do
     allow(Bosh::Clouds::Config).to receive(:logger).and_return(logger)
-    allow(openstack).to receive(:with_openstack) { |&block| block.call }
+    allow(openstack).to receive(:with_huaweicloud) { |&block| block.call }
     allow(openstack).to receive(:is_v3).and_return(version == 'v3' ? true : false)
   end
 

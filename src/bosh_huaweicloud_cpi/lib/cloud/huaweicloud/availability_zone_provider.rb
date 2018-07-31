@@ -61,7 +61,7 @@ module Bosh::HuaweiCloud
 
     def volumes(volume_ids)
       fog_volume_map = @huaweicloud.volume.volumes
-      volume_ids.map {|vid| @huaweicloud.with_openstack {fog_volume_map.get(vid)}}
+      volume_ids.map {|vid| @huaweicloud.with_huaweicloud {fog_volume_map.get(vid)}}
     end
 
     def resource_pool_az_description(resource_pool_az)

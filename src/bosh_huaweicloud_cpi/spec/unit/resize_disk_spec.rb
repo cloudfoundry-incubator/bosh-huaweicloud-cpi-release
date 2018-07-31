@@ -103,7 +103,7 @@ describe Bosh::HuaweiCloud::Cloud, 'resize_disk' do
     it 'raises an error' do
       expect {
         cloud.resize_disk('disk-id', 4096)
-      }.to raise_error(Bosh::Clouds::CloudError, 'OpenStack API Bad Request (some-message). Check task debug log for details.')
+      }.to raise_error(Bosh::Clouds::CloudError, 'HuaweiCloud API Bad Request (some-message). Check task debug log for details.')
     end
   end
 end

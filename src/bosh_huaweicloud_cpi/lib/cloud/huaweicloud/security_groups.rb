@@ -9,7 +9,7 @@ module Bosh::HuaweiCloud
         resource_pool_spec_security_groups,
       )
 
-      openstack_security_groups = openstack.with_openstack {
+      openstack_security_groups = openstack.with_huaweicloud {
         retrieve_security_groups(openstack)
       }
 

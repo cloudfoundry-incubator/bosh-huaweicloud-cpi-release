@@ -18,11 +18,11 @@ module Bosh::HuaweiCloud
     # @param [Bosh::HuaweiCloud::Huawei] openstack
     # @param [Fog::Compute::HuaweiCloud::Server] server OpenStack server to
     #   configure
-    def configure(openstack, server, network_id)
+    def configure(huaweicloud, server, network_id)
       cloud_error("No IP provided for vip network `#{@name}'") if @ip.nil?
 
-      openstack.with_openstack do
-        FloatingIp.reassociate(openstack, @ip, server, network_id)
+      huaweicloud.with_huaweicloud do
+        FloatingIp.reassociate(huaweicloud, @ip, server, network_id)
       end
     end
   end

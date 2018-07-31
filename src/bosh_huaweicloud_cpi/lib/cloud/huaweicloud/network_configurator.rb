@@ -148,7 +148,7 @@ module Bosh::HuaweiCloud
           raise Bosh::Clouds::VMCreationFailed.new(false), 'Gateway IP address could not be determined. Gateway network is dynamic, but additional private networks exist.'
         end
 
-        openstack.with_openstack {
+        openstack.with_huaweicloud {
           return server.addresses.values.first.dig(0, 'addr')
         }
       end
@@ -189,7 +189,7 @@ module Bosh::HuaweiCloud
 
     def self.port_ids(openstack, server_id)
       return [] if openstack.use_nova_networking?
-      ports = openstack.with_openstack {
+      ports = openstack.with_huaweicloud {
         openstack.network.ports.all(device_id: server_id)
       }
       ports.map(&:id)
@@ -198,7 +198,7 @@ module Bosh::HuaweiCloud
     def self.cleanup_ports(openstack, port_ids)
       return if openstack.use_nova_networking?
       port_ids.each do |port_id|
-        openstack.with_openstack {
+        openstack.with_huaweicloud {
           port = openstack.network.ports.get(port_id)
           if port
             Bosh::Clouds::Config.logger.debug("Deleting port #{port_id}")

@@ -25,7 +25,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
   }
 
 
-  before { allow(openstack).to receive(:with_openstack) { |&block| block.call } }
+  before { allow(openstack).to receive(:with_huaweicloud) { |&block| block.call } }
 
   it 'exposes network_spec as attribute' do
     nc = Bosh::HuaweiCloud::NetworkConfigurator.new(spec)
