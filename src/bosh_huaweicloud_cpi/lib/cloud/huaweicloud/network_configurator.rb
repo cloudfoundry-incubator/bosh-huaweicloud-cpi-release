@@ -84,21 +84,21 @@ module Bosh::HuaweiCloud
       case network_type
       when 'dynamic'
         cloud_error('Only one dynamic network per instance should be defined') if @dynamic_network
-        net_id = NetworkConfigurator.extract_net_id(network_spec)
-        cloud_error("Dynamic network with id #{net_id} is already defined") if @net_ids.include?(net_id)
+        subnet_id = NetworkConfigurator.extract_subnet_id(network_spec)
+        cloud_error("Dynamic network with id #{subnet_id} is already defined") if @net_ids.include?(subnet_id)
         network = DynamicNetwork.new(name, network_spec)
         @security_groups += extract_security_groups(network_spec)
         @networks << network
-        @net_ids << net_id
+        @net_ids << subnet_id
         @dynamic_network = network
       when 'manual'
-        net_id = NetworkConfigurator.extract_net_id(network_spec)
-        cloud_error('Manual network must have net_id') if net_id.nil?
-        cloud_error("Manual network with id #{net_id} is already defined") if @net_ids.include?(net_id)
+        subnet_id = NetworkConfigurator.extract_subnet_id(network_spec)
+        cloud_error('Manual network must have subnet_id') if subnet_id.nil?
+        cloud_error("Manual network with id #{subnet_id} is already defined") if @net_ids.include?(subnet_id)
         network = ManualNetwork.new(name, network_spec)
         @security_groups += extract_security_groups(network_spec)
         @networks << network
-        @net_ids << net_id
+        @net_ids << subnet_id
       when 'vip'
         cloud_error('Only one VIP network per instance should be defined') if @vip_network
         @vip_network = VipNetwork.new(name, network_spec)
@@ -126,7 +126,7 @@ module Bosh::HuaweiCloud
 
     def self.get_gateway_network_id(network_spec)
       network = get_gateway_network(network_spec)
-      extract_net_id(network)
+      extract_subnet_id(network)
     end
 
     def self.matching_gateway_subnet_ids_for_ip(network_spec, openstack, ip)
@@ -256,10 +256,10 @@ module Bosh::HuaweiCloud
     #
     # @param [Hash] network_spec Network specification
     # @return [Hash] network ID
-    def self.extract_net_id(network_spec)
+    def self.extract_subnet_id(network_spec)
       if network_spec && network_spec['cloud_properties']
         cloud_properties = network_spec['cloud_properties']
-        return cloud_properties['net_id'] if cloud_properties&.key?('net_id')
+        return cloud_properties['subnet_id'] if cloud_properties&.key?('subnet_id')
       end
       nil
     end

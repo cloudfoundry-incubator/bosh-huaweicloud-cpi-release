@@ -150,13 +150,13 @@ def dynamic_network_spec
   }
 end
 
-def manual_network_spec(net_id: 'net', ip: '0.0.0.0', defaults: nil, overwrites: {})
+def manual_network_spec(subnet_id: 'net', ip: '0.0.0.0', defaults: nil, overwrites: {})
   {
     'ip' => ip,
     'defaults' => defaults,
     'cloud_properties' => {
       'security_groups' => %w[default],
-      'net_id' => net_id,
+      'subnet_id' => subnet_id,
     },
     'use_dhcp' => true,
   }.merge(overwrites)
@@ -175,7 +175,7 @@ def dynamic_network_with_netid_spec
     'type' => 'dynamic',
     'cloud_properties' => {
       'security_groups' => %w[default],
-      'net_id' => 'net',
+      'subnet_id' => 'net',
     },
   }
 end

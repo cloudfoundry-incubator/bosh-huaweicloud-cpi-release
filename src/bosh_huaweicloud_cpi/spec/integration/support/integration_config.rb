@@ -7,7 +7,7 @@ class IntegrationConfig
               :project,
               :domain,
               :stemcell_path,
-              :net_id,
+              :subnet_id,
               :net_id_no_dhcp_1,
               :net_id_no_dhcp_2,
               :volume_type,
@@ -63,7 +63,7 @@ class IntegrationConfig
     @connection_options['ssl_ca_file'] = @ca_cert_path if @ca_cert_path
 
     @stemcell_path                   = LifecycleHelper.get_config(:stemcell_path)
-    @net_id                          = LifecycleHelper.get_config(:net_id)
+    @subnet_id                          = LifecycleHelper.get_config(:subnet_id)
     @net_id_no_dhcp_1                = LifecycleHelper.get_config(:net_id_no_dhcp_1)
     @net_id_no_dhcp_2                = LifecycleHelper.get_config(:net_id_no_dhcp_2)
     @volume_type                     = LifecycleHelper.get_config(:volume_type, nil)

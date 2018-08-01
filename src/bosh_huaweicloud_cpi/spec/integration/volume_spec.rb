@@ -59,7 +59,7 @@ describe Bosh::HuaweiCloud::Cloud do
       'default' => {
         'type' => 'dynamic',
         'cloud_properties' => {
-          'net_id' => @config.net_id,
+          'subnet_id' => @config.subnet_id,
         },
       },
     }

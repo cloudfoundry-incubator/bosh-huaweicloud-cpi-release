@@ -14,7 +14,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
   let(:several_manual_networks) do
     {
       'network_a' => manual_network_spec(ip: '10.0.0.1'),
-      'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2'),
+      'network_b' => manual_network_spec(subnet_id: 'bar', ip: '10.0.0.2'),
     }
   end
   let(:openstack) { instance_double(Bosh::HuaweiCloud::Huawei) }
@@ -41,21 +41,21 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
       end
     end
 
-    context 'when no net_id defined in manual networks' do
+    context 'when no subnet_id defined in manual networks' do
       it 'should raise a CloudError' do
         spec = {}
         spec['network_b'] = manual_network_without_netid_spec
 
         expect {
           Bosh::HuaweiCloud::NetworkConfigurator.new(spec)
-        }.to raise_error Bosh::Clouds::CloudError, 'Manual network must have net_id'
+        }.to raise_error Bosh::Clouds::CloudError, 'Manual network must have subnet_id'
       end
     end
 
-    context 'when several manual networks have the same net_id' do
+    context 'when several manual networks have the same subnet_id' do
       it 'should raise a CloudError' do
         spec = several_manual_networks
-        spec['network_b']['cloud_properties']['net_id'] = 'net'
+        spec['network_b']['cloud_properties']['subnet_id'] = 'net'
 
         expect {
           Bosh::HuaweiCloud::NetworkConfigurator.new(spec)
@@ -104,7 +104,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
           vrrp_port = '10.0.0.10'
           network_configurator = Bosh::HuaweiCloud::NetworkConfigurator.new({
             'network_a' => manual_network_spec(ip: '10.0.0.1'),
-            'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2', defaults: ['gateway']),
+            'network_b' => manual_network_spec(subnet_id: 'bar', ip: '10.0.0.2', defaults: ['gateway']),
             'network_c' => dynamic_network_spec,
           }, vrrp_port)
 
@@ -122,7 +122,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
         it 'should set allowed_address_pair to the default network' do
           network_configurator = Bosh::HuaweiCloud::NetworkConfigurator.new(
             'network_a' => manual_network_spec(ip: '10.0.0.1'),
-            'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2', defaults: ['gateway']),
+            'network_b' => manual_network_spec(subnet_id: 'bar', ip: '10.0.0.2', defaults: ['gateway']),
             'network_c' => dynamic_network_spec,
           )
 
@@ -165,23 +165,23 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
 
   describe '#nics' do
     context 'when dynamic network' do
-      it 'should extract net_id' do
+      it 'should extract subnet_id' do
         spec = {}
         spec['network_a'] = dynamic_network_spec
-        spec['network_a']['cloud_properties']['net_id'] = 'foo'
+        spec['network_a']['cloud_properties']['subnet_id'] = 'foo'
 
         nc = Bosh::HuaweiCloud::NetworkConfigurator.new(spec)
-        expect(nc.nics).to eq([{ 'net_id' => 'foo' }])
+        expect(nc.nics).to eq([{ 'subnet_id' => 'foo' }])
       end
 
       it 'should not extract ip address' do
         spec = {}
         spec['network_a'] = dynamic_network_spec
         spec['network_a']['ip'] = '10.0.0.1'
-        spec['network_a']['cloud_properties']['net_id'] = 'foo'
+        spec['network_a']['cloud_properties']['subnet_id'] = 'foo'
 
         nc = Bosh::HuaweiCloud::NetworkConfigurator.new(spec)
-        expect(nc.nics).to eq([{ 'net_id' => 'foo' }])
+        expect(nc.nics).to eq([{ 'subnet_id' => 'foo' }])
       end
     end
 
@@ -196,33 +196,33 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
         it 'should set fixed ip only' do
           nc.prepare(openstack)
 
-          expect(nc.nics).to eq([{ 'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1' }])
+          expect(nc.nics).to eq([{ 'subnet_id' => 'net', 'v4_fixed_ip' => '10.0.0.1' }])
         end
       end
 
       context 'and port id is available in network spec' do
         let(:openstack) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: false) }
         before(:each) do
-          allow_any_instance_of(Bosh::HuaweiCloud::ManualNetwork).to receive(:nic).and_return('net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8')
+          allow_any_instance_of(Bosh::HuaweiCloud::ManualNetwork).to receive(:nic).and_return('subnet_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8')
           allow_any_instance_of(Bosh::HuaweiCloud::ManualNetwork).to receive(:prepare)
         end
 
         it 'should set port id only' do
           nc.prepare(openstack)
 
-          expect(nc.nics).to eq([{ 'net_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8' }])
+          expect(nc.nics).to eq([{ 'subnet_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8' }])
         end
       end
 
       context 'when multiple networks' do
         let(:openstack) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: true) }
-        it 'should extract net_id and IP address from all' do
+        it 'should extract subnet_id and IP address from all' do
           nc = Bosh::HuaweiCloud::NetworkConfigurator.new(several_manual_networks)
           nc.prepare(openstack)
 
           expect(nc.nics).to eq([
-                                  { 'net_id' => 'net', 'v4_fixed_ip' => '10.0.0.1' },
-                                  { 'net_id' => 'bar', 'v4_fixed_ip' => '10.0.0.2' },
+                                  { 'subnet_id' => 'net', 'v4_fixed_ip' => '10.0.0.1' },
+                                  { 'subnet_id' => 'bar', 'v4_fixed_ip' => '10.0.0.2' },
                                 ])
         end
       end
@@ -246,7 +246,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
     it 'should delegate to all private networks' do
       nc = Bosh::HuaweiCloud::NetworkConfigurator.new(
         'network_a' => manual_network_spec(ip: '10.0.0.1'),
-        'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2'),
+        'network_b' => manual_network_spec(subnet_id: 'bar', ip: '10.0.0.2'),
         'network_c' => dynamic_network_spec,
       )
 
@@ -289,7 +289,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
     it 'should delegate to all private networks' do
       nc = Bosh::HuaweiCloud::NetworkConfigurator.new(
         'network_a' => manual_network_spec(ip: '10.0.0.1'),
-        'network_b' => manual_network_spec(net_id: 'bar', ip: '10.0.0.2'),
+        'network_b' => manual_network_spec(subnet_id: 'bar', ip: '10.0.0.2'),
         'network_c' => dynamic_network_spec,
       )
 
@@ -322,7 +322,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
       let(:network_spec) do
         {
           'network_a' => dynamic_network_spec,
-          'network_b' => manual_network_spec(net_id: 'net_b', defaults: ['gateway']),
+          'network_b' => manual_network_spec(subnet_id: 'net_b', defaults: ['gateway']),
           'network_c' => vip_network_spec,
         }
       end
@@ -438,20 +438,20 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
       let(:network_spec) do
         {
           'vip_network' => vip_network_spec,
-          'network_a' => manual_network_spec(net_id: 'net_id'),
+          'network_a' => manual_network_spec(subnet_id: 'subnet_id'),
         }
       end
 
       it 'should return network id' do
-        expect(Bosh::HuaweiCloud::NetworkConfigurator.get_gateway_network_id(network_spec)).to eq('net_id')
+        expect(Bosh::HuaweiCloud::NetworkConfigurator.get_gateway_network_id(network_spec)).to eq('subnet_id')
       end
     end
 
     context 'multiple network configured' do
       let(:network_spec) do
         {
-          'network_a' =>  manual_network_spec(net_id: 'net_id_a'),
-          'network_b' =>  manual_network_spec(net_id: 'net_id_b', defaults: ['gateway']),
+          'network_a' =>  manual_network_spec(subnet_id: 'net_id_a'),
+          'network_b' =>  manual_network_spec(subnet_id: 'net_id_b', defaults: ['gateway']),
           'vip_network' => vip_network_spec,
         }
       end
@@ -468,7 +468,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
     context 'when gateway network is a manual network' do
       let(:network_spec) {
         {
-          'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']),
+          'network_a' => manual_network_spec(subnet_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']),
           'vip_network' => vip_network_spec,
         }
       }
@@ -480,8 +480,8 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
       context 'when other private networks exist' do
         let(:network_spec) {
           {
-            'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']),
-            'network_b' => manual_network_spec(net_id: 'net_id_b', ip: '20.20.20.20'),
+            'network_a' => manual_network_spec(subnet_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']),
+            'network_b' => manual_network_spec(subnet_id: 'net_id_b', ip: '20.20.20.20'),
             'network_c' => dynamic_network_with_netid_spec,
             'vip_network' => vip_network_spec,
           }
@@ -514,7 +514,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
         let(:network_spec) {
           {
             'network_a' => dynamic_network_with_netid_spec.merge('defaults' => ['gateway']),
-            'network_b' => manual_network_spec(net_id: 'net_id_b', ip: '10.10.10.10'),
+            'network_b' => manual_network_spec(subnet_id: 'net_id_b', ip: '10.10.10.10'),
             'vip_network' => vip_network_spec,
           }
         }
@@ -538,7 +538,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
     end
 
     context 'when no sub-networks exist' do
-      let(:network_spec) { { 'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']) } }
+      let(:network_spec) { { 'network_a' => manual_network_spec(subnet_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']) } }
       let(:subnets) { [] }
 
       it 'returns an empty list' do
@@ -549,7 +549,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
     end
 
     context 'when only one sub-network exists' do
-      let(:network_spec) { { 'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']) } }
+      let(:network_spec) { { 'network_a' => manual_network_spec(subnet_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']) } }
       let(:subnets) { [{ 'id' => 'subnet_id', 'cidr' => '10.0.0.0/24' }] }
 
       it 'returns the gateway sub-network id' do
@@ -562,7 +562,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
     context 'when more than one sub-network exist' do
       let(:network_spec) {
         {
-          'network_a' => manual_network_spec(net_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']),
+          'network_a' => manual_network_spec(subnet_id: 'net_id_a', ip: '10.10.10.10', defaults: ['gateway']),
         }
       }
       let(:subnets) { [{ 'id' => 'subnet_id', 'cidr' => '10.0.0.0/24' }, { 'id' => 'second_subnet_id', 'cidr' => '20.20.20.0/24' }] }
@@ -588,8 +588,8 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
     context 'when multiple manual networks' do
       subject do
         network_spec = {
-          'network_a' => manual_network_spec(net_id: 'network_a', ip: '10.0.0.1'),
-          'network_b' => manual_network_spec(net_id: 'network_b', ip: '10.1.0.1'),
+          'network_a' => manual_network_spec(subnet_id: 'network_a', ip: '10.0.0.1'),
+          'network_b' => manual_network_spec(subnet_id: 'network_b', ip: '10.1.0.1'),
         }
         Bosh::HuaweiCloud::NetworkConfigurator.new(network_spec)
       end
