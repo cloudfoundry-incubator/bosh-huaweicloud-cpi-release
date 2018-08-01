@@ -25,7 +25,7 @@ module Bosh::HuaweiCloud
       else
         # NOTE: Port ID is not required in huaweicloud, we directly use network_id and fixed ips instead
         # here. See document: https://support.huaweicloud.com/api-ecs/zh-cn_topic_0068473331.html#ZH-CN_TOPIC_0068473331__zh-cn_topic_0057972661_table9995892105551
-        @logger.debug("Port is not required for huaweicloud, ignore creating pod for ip: #{@ip}, using network(subnet) #{net_id} directly.")
+        @logger.debug("Port is not required for huaweicloud, ignore creating pod for ip: #{@ip}, using network(subnet) #{subnet_id} directly.")
         if subnet_id
           huaweicloud.with_huaweicloud do
             subnet = huaweicloud.network.subnets.get(subnet_id, false).body['subnet']
@@ -37,7 +37,7 @@ module Bosh::HuaweiCloud
           @nic['subnet_id'] = subnet_id
           @nic['fixed_ip'] = @ip
         elsif vpc_id
-          @logger.debug("'net_id' is not configured, use vpc instead.")
+          @logger.debug("'subnet_id' is not configured, use vpc instead.")
           huaweicloud.with_huaweicloud do
             subs = huaweicloud.network.subnets.all({vpc_id:vpc_id}, false).body['subnets'].select do |sub|
               NetAddr::CIDR.create(sub['cidr']).matches?(@ip)
