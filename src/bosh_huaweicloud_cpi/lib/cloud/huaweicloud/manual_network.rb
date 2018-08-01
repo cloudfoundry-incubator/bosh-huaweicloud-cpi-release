@@ -23,11 +23,33 @@ module Bosh::HuaweiCloud
       if huaweicloud.use_nova_networking?
         @nic['v4_fixed_ip'] = @ip
       else
-        @logger.debug("Creating port for IP #{@ip} in network #{subnet_id}")
-        port = create_port_for_manual_network(huaweicloud, subnet_id, security_group_ids)
-        @logger.debug("Port with ID #{port.id} and MAC address #{port.mac_address} created")
-        @nic['port_id'] = port.id
-        @spec['mac'] = port.mac_address
+        # NOTE: Port ID is not required in huaweicloud, we directly use network_id and fixed ips instead
+        # here. See document: https://support.huaweicloud.com/api-ecs/zh-cn_topic_0068473331.html#ZH-CN_TOPIC_0068473331__zh-cn_topic_0057972661_table9995892105551
+        @logger.debug("Port is not required for huaweicloud, ignore creating pod for ip: #{@ip}, using network(subnet) #{net_id} directly.")
+        if subnet_id
+          huaweicloud.with_huaweicloud do
+            subnet = huaweicloud.network.subnets.get(subnet_id, false).body['subnet']
+            unless NetAddr::CIDR.create(subnet['cidr']).matches?(@ip)
+              error_message = "subnet is not compatible with fixed ip address."
+              raise Bosh::Clouds::VMCreationFailed.new(false), error_message
+            end
+          end
+          @nic['subnet_id'] = subnet_id
+          @nic['fixed_ip'] = @ip
+        elsif vpc_id
+          @logger.debug("'net_id' is not configured, use vpc instead.")
+          huaweicloud.with_huaweicloud do
+            subs = huaweicloud.network.subnets.all({vpc_id:vpc_id}, false).body['subnets'].select do |sub|
+              NetAddr::CIDR.create(sub['cidr']).matches?(@ip)
+            end
+            @nic['subnet_id'] = subs.first
+            @nic['fixed_ip'] = @ip
+          end
+        end
+        if @nic['subnet_id'].nil?
+          error_message = "Can't find suitable network(subnet) according provided 'ip' and 'vpc_id' in the network spec."
+          raise Bosh::Clouds::VMCreationFailed.new(false), error_message
+        end
       end
     end
 
@@ -46,8 +68,10 @@ module Bosh::HuaweiCloud
 
     def cleanup(huaweicloud)
       unless huaweicloud.use_nova_networking?
-        port = huaweicloud.network.ports.get(@nic['port_id'])
-        port&.destroy
+        unless @nic['port_id'].nil?
+          port = huaweicloud.network.ports.get(@nic['port_id'])
+          port&.destroy
+        end
       end
     end
 

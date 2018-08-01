@@ -24,7 +24,7 @@ module Bosh::HuaweiCloud
       @vip_network = nil
       @security_groups = []
       @picked_security_groups = []
-      @net_ids = []
+      @subnet_ids = []
       @dynamic_network = nil
 
       spec.each_pair do |name, network_spec|
@@ -85,20 +85,22 @@ module Bosh::HuaweiCloud
       when 'dynamic'
         cloud_error('Only one dynamic network per instance should be defined') if @dynamic_network
         subnet_id = NetworkConfigurator.extract_subnet_id(network_spec)
-        cloud_error("Dynamic network with id #{subnet_id} is already defined") if @net_ids.include?(subnet_id)
+        cloud_error("Dynamic network with id #{subnet_id} is already defined") if @subnet_ids.include?(subnet_id)
         network = DynamicNetwork.new(name, network_spec)
         @security_groups += extract_security_groups(network_spec)
         @networks << network
-        @net_ids << subnet_id
+        @subnet_ids << subnet_id
         @dynamic_network = network
       when 'manual'
         subnet_id = NetworkConfigurator.extract_subnet_id(network_spec)
         cloud_error('Manual network must have subnet_id') if subnet_id.nil?
-        cloud_error("Manual network with id #{subnet_id} is already defined") if @net_ids.include?(subnet_id)
+        cloud_error("Manual network with id #{subnet_id} is already defined") if @subnet_ids.include?(subnet_id)
         network = ManualNetwork.new(name, network_spec)
         @security_groups += extract_security_groups(network_spec)
         @networks << network
-        @net_ids << subnet_id
+        unless subnet_id.nil?
+          @subnet_ids << subnet_id
+        end
       when 'vip'
         cloud_error('Only one VIP network per instance should be defined') if @vip_network
         @vip_network = VipNetwork.new(name, network_spec)
