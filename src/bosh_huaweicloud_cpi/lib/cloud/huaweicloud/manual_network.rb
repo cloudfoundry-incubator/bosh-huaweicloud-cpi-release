@@ -28,8 +28,8 @@ module Bosh::HuaweiCloud
         @logger.debug("Port is not required for huaweicloud, ignore creating pod for ip: #{@ip}, using network(subnet) #{subnet_id} directly.")
         if subnet_id
           huaweicloud.with_huaweicloud do
-            subnet = huaweicloud.network.subnets.get(subnet_id, false).body['subnet']
-            unless NetAddr::CIDR.create(subnet['cidr']).matches?(@ip)
+            subnet = huaweicloud.network.subnets.get(subnet_id, false)
+            unless NetAddr::CIDR.create(subnet.cidr).matches?(@ip)
               error_message = "subnet is not compatible with fixed ip address."
               raise Bosh::Clouds::VMCreationFailed.new(false), error_message
             end
@@ -39,8 +39,8 @@ module Bosh::HuaweiCloud
         elsif vpc_id
           @logger.debug("'subnet_id' is not configured, use vpc instead.")
           huaweicloud.with_huaweicloud do
-            subs = huaweicloud.network.subnets.all({vpc_id:vpc_id}, false).body['subnets'].select do |sub|
-              NetAddr::CIDR.create(sub['cidr']).matches?(@ip)
+            subs = huaweicloud.network.subnets.all({vpc_id:vpc_id}, false).select do |sub|
+              NetAddr::CIDR.create(sub.cidr).matches?(@ip)
             end
             @nic['subnet_id'] = subs.first
             @nic['fixed_ip'] = @ip
