@@ -24,7 +24,7 @@ module Bosh::HuaweiCloud
       create_vm_params = create_vm_params.dup
 
       begin
-        @openstack.with_openstack { network_configurator.prepare(@openstack) }
+        @openstack.with_huaweicloud { network_configurator.prepare(@openstack) }
         pick_nics(create_vm_params, network_configurator)
         server = create_server(create_vm_params)
         configure_server(network_configurator, server)
@@ -42,7 +42,7 @@ module Bosh::HuaweiCloud
         end
 
         begin
-          @openstack.with_openstack {
+          @openstack.with_huaweicloud {
             network_configurator.cleanup(@openstack)
           }
         rescue StandardError => cleanup_error
@@ -59,7 +59,7 @@ module Bosh::HuaweiCloud
       bosh_group = "#{server_tags['director']}-#{server_tags['deployment']}-#{server_tags['instance_group']}"
 
       lbaas_error = catch_error('Removing lbaas pool memberships') { LoadbalancerConfigurator.new(@openstack, @logger).cleanup_memberships(server_tags) }
-      @openstack.with_openstack { server.destroy }
+      @openstack.with_huaweicloud { server.destroy }
       fail_on_error(
         catch_error('Wait for server deletion') { @openstack.wait_resource(server, %i[terminated deleted], :state, true) },
         catch_error('Removing ports') { NetworkConfigurator.cleanup_ports(@openstack, server_port_ids) },
@@ -84,7 +84,7 @@ module Bosh::HuaweiCloud
 
     def create_server(create_vm_params)
       @logger.debug("Using boot parms: `#{Bosh::Cpi::Redactor.clone_and_redact(create_vm_params, 'user_data').inspect}'")
-      server = @openstack.with_openstack do
+      server = @openstack.with_huaweicloud do
         begin
           @openstack.compute.servers.create(create_vm_params)
         rescue Excon::Error::Timeout => e
@@ -115,7 +115,7 @@ module Bosh::HuaweiCloud
         @openstack.wait_resource(server, :active, :state)
 
         @logger.info("Configuring network for server `#{server.id}'...")
-        @openstack.with_openstack { network_configurator.configure(@openstack, server) }
+        @openstack.with_huaweicloud { network_configurator.configure(@openstack, server) }
       rescue StandardError => e
         @logger.warn("Failed to create server: #{e.message}")
         raise Bosh::Clouds::VMCreationFailed.new(true), e.message

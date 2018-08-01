@@ -5,9 +5,9 @@ describe Bosh::HuaweiCloud::SecurityGroups do
   let(:compute) { double('compute', security_groups: security_groups) }
   let(:network) { double('network', security_groups: security_groups) }
   let(:use_nova_networking?) { false }
-  let(:openstack) { double('openstack', compute: compute, network: network, use_nova_networking?: use_nova_networking?) }
+  let(:huaweicloud) { double('huaweicloud', compute: compute, network: network, use_nova_networking?: use_nova_networking?) }
 
-  before { allow(openstack).to receive(:with_openstack) { |&block| block.call } }
+  before { allow(huaweicloud).to receive(:with_huaweicloud) { |&block| block.call } }
 
   describe '.retrieve_and_validate_security_groups' do
     context 'security group picking' do
@@ -22,7 +22,7 @@ describe Bosh::HuaweiCloud::SecurityGroups do
       context 'when security groups specified in resource pool spec' do
         it 'picks those' do
           picked_security_groups = Bosh::HuaweiCloud::SecurityGroups.select_and_retrieve(
-            openstack,
+            huaweicloud,
             ['default-security-group'],
             [],
             ['resource-pool-spec-security-group'],
@@ -35,7 +35,7 @@ describe Bosh::HuaweiCloud::SecurityGroups do
       context 'when security group id is specified instead of name' do
         it 'picks the security group by id' do
           picked_security_groups = Bosh::HuaweiCloud::SecurityGroups.select_and_retrieve(
-            openstack,
+            huaweicloud,
             ['default-security-group-id'],
             [],
             [],
@@ -48,7 +48,7 @@ describe Bosh::HuaweiCloud::SecurityGroups do
       context 'when security groups specified in network spec' do
         it 'picks those' do
           picked_security_groups = Bosh::HuaweiCloud::SecurityGroups.select_and_retrieve(
-            openstack,
+            huaweicloud,
             ['default-security-group'],
             ['network-spec-security-group'],
             [],
@@ -61,7 +61,7 @@ describe Bosh::HuaweiCloud::SecurityGroups do
       context 'when resource pool spec and network spec define security groups' do
         it 'picks the resource pool security groups' do
           picked_security_groups = Bosh::HuaweiCloud::SecurityGroups.select_and_retrieve(
-            openstack,
+            huaweicloud,
             ['default security group'],
             ['network-spec-security-group'],
             ['resource-pool-spec-security-group'],
@@ -74,7 +74,7 @@ describe Bosh::HuaweiCloud::SecurityGroups do
       context 'when security groups are neither specified in network spec nor resource pool spec' do
         it 'picks the default security group' do
           picked_security_groups = Bosh::HuaweiCloud::SecurityGroups.select_and_retrieve(
-            openstack,
+            huaweicloud,
             ['default-security-group'],
             [],
             [],
@@ -85,13 +85,13 @@ describe Bosh::HuaweiCloud::SecurityGroups do
       end
     end
 
-    context 'when a picked security group does not exist in openstack' do
+    context 'when a picked security group does not exist in huaweicloud' do
       let(:security_groups) { [] }
 
       it 'raises an error' do
         expect {
           Bosh::HuaweiCloud::SecurityGroups.select_and_retrieve(
-            openstack,
+            huaweicloud,
             ['default-security-group'],
             [],
             [],
@@ -100,7 +100,7 @@ describe Bosh::HuaweiCloud::SecurityGroups do
       end
     end
 
-    context 'when openstack is configured with `use_nova_networking`' do
+    context 'when huaweicloud is configured with `use_nova_networking`' do
       let(:use_nova_networking?) { true }
 
       let(:security_groups) {
@@ -111,7 +111,7 @@ describe Bosh::HuaweiCloud::SecurityGroups do
 
       it 'uses nova to retrieve the security groups' do
         Bosh::HuaweiCloud::SecurityGroups.select_and_retrieve(
-          openstack,
+          huaweicloud,
           ['default-security-group'],
           [],
           [],
@@ -122,7 +122,7 @@ describe Bosh::HuaweiCloud::SecurityGroups do
       end
     end
 
-    context 'when openstack is configured without `use_nova_networking` (default)' do
+    context 'when huaweicloud is configured without `use_nova_networking` (default)' do
       let(:use_nova_networking?) { false }
 
       let(:security_groups) {
@@ -133,7 +133,7 @@ describe Bosh::HuaweiCloud::SecurityGroups do
 
       it 'uses neutron to retrieve the security groups' do
         Bosh::HuaweiCloud::SecurityGroups.select_and_retrieve(
-          openstack,
+          huaweicloud,
           ['default-security-group'],
           [],
           [],

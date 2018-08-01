@@ -48,7 +48,7 @@ module Bosh::HuaweiCloud
     end
 
     def pick_flavor(server_params, resource_pool)
-      flavor = @openstack.with_openstack { @openstack.compute.flavors.find { |f| f.name == resource_pool['instance_type'] } }
+      flavor = @openstack.with_huaweicloud { @openstack.compute.flavors.find { |f| f.name == resource_pool['instance_type'] } }
       cloud_error("Flavor `#{resource_pool['instance_type']}' not found") if flavor.nil?
       if flavor_has_ephemeral_disk?(flavor)
         if flavor.ram
@@ -74,7 +74,7 @@ module Bosh::HuaweiCloud
     end
 
     def validate_key_exists(keyname)
-      keypair = @openstack.with_openstack { @openstack.compute.key_pairs.find { |k| k.name == keyname } }
+      keypair = @openstack.with_huaweicloud { @openstack.compute.key_pairs.find { |k| k.name == keyname } }
       cloud_error("Key-pair `#{keyname}' not found") if keypair.nil?
       @logger.debug("Using key-pair: `#{keypair.name}' (#{keypair.fingerprint})")
     end

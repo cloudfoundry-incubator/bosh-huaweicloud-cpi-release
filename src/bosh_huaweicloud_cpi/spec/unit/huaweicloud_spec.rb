@@ -15,24 +15,6 @@ describe Bosh::HuaweiCloud::Huawei do
       expect(Bosh::HuaweiCloud::Huawei.is_v3('http://fake-auth-url/v2.0')).to be_falsey
     end
   end
-
-  describe :project_name do
-
-    context 'when keystone version is v3' do
-      let(:openstack_options) { openstack_options_v2 }
-      it 'returns the project name' do
-        expect(subject.project_name).to eq('admin')
-      end
-    end
-
-    context 'when keystone version is v2' do
-      let(:openstack_options) { openstack_options_v3 }
-      it 'returns the tenant name' do
-        expect(subject.project_name).to eq('admin')
-      end
-    end
-  end
-
   describe :new do
     context 'when auth_url does not include tokens' do
       context 'when auth_url is v2' do
@@ -86,17 +68,17 @@ describe Bosh::HuaweiCloud::Huawei do
     context 'excon instrumentor' do
       context 'default instrumentor' do
         it 'set the default instrumentor' do
-          openstack = Bosh::HuaweiCloud::Huawei.new(openstack_options)
+          huaweicloud = Bosh::HuaweiCloud::Huawei.new(openstack_options)
 
-          expect(openstack.params[:connection_options]['instrumentor']).to eq(Bosh::HuaweiCloud::ExconLoggingInstrumentor)
+          expect(huaweicloud.params[:connection_options]['instrumentor']).to eq(Bosh::HuaweiCloud::ExconLoggingInstrumentor)
         end
       end
 
       context 'no instrumentor' do
         it 'set the default instrumentor' do
-          openstack = Bosh::HuaweiCloud::Huawei.new(openstack_options, {}, {})
+          huaweicloud = Bosh::HuaweiCloud::Huawei.new(openstack_options, {}, {})
 
-          expect(openstack.params[:connection_options].key?('instrumentor')).to be(false)
+          expect(huaweicloud.params[:connection_options].key?('instrumentor')).to be(false)
         end
       end
     end
@@ -134,7 +116,7 @@ describe Bosh::HuaweiCloud::Huawei do
         expect {
           Bosh::HuaweiCloud::Huawei.new(openstack_options).network
         }.to raise_error(Bosh::Clouds::CloudError,
-                         'Unable to connect to the OpenStack Network Service API: Not found message. Check task debug log for details.')
+                         'Unable to connect to the HuaweiCloud Network Service API: Not found message. Check task debug log for details.')
       end
     end
   end
@@ -155,15 +137,15 @@ describe Bosh::HuaweiCloud::Huawei do
           expect {
             Bosh::HuaweiCloud::Huawei.new(openstack_options, retry_options_overwrites).send(fog[:method_name])
           }.to raise_error(Bosh::Clouds::CloudError,
-                           "Unable to connect to the OpenStack #{fog[:name]} Service API: Unauthorized. Check task debug log for details.")
+                           "Unable to connect to the HuaweiCloud #{fog[:name]} Service API: Unauthorized. Check task debug log for details.")
         end
       end
 
       context 'when the backend call raises a SocketError' do
         let(:socket_error) { Excon::Error::Socket.new(SocketError.new('getaddrinfo: nodename nor servname provided, or not known')) }
-        let(:expected_error_message) { "Unable to connect to the OpenStack Keystone API #{openstack_options['auth_url']}/tokens\ngetaddrinfo: nodename nor servname provided, or not known (SocketError)" }
+        let(:expected_error_message) { "Unable to connect to the HuaweiCloud Keystone API #{openstack_options['auth_url']}/tokens\ngetaddrinfo: nodename nor servname provided, or not known (SocketError)" }
 
-        it 'raises a CloudError exception enriched with the targeted OpenStack KeyStone API url for service API' do
+        it 'raises a CloudError exception enriched with the targeted HuaweiCloud KeyStone API url for service API' do
           allow(fog[:clazz]).to receive(:new).and_raise(socket_error)
 
           expect {
@@ -197,8 +179,8 @@ describe Bosh::HuaweiCloud::Huawei do
           allow(fog[:clazz]).to receive(:new).and_return(instance_double(fog[:clazz]))
           Bosh::HuaweiCloud::Huawei.new(openstack_options).send(fog[:method_name])
 
-          expect(fog[:clazz]).to have_received(:new).with(hash_including(openstack_project_name: 'admin'))
-          expect(fog[:clazz]).to have_received(:new).with(hash_including(openstack_domain_name: 'some_domain'))
+          expect(fog[:clazz]).to have_received(:new).with(hash_including(huaweicloud_project_name: 'admin'))
+          expect(fog[:clazz]).to have_received(:new).with(hash_including(huaweicloud_domain_name: 'some_domain'))
         end
       end
 
@@ -207,7 +189,7 @@ describe Bosh::HuaweiCloud::Huawei do
           allow(fog[:clazz]).to receive(:new).and_return(instance_double(fog[:clazz]))
           Bosh::HuaweiCloud::Huawei.new(openstack_options).send(fog[:method_name])
 
-          expect(fog[:clazz]).to have_received(:new).with(hash_including(openstack_tenant: 'admin'))
+          expect(fog[:clazz]).to have_received(:new).with(hash_including(huaweicloud_tenant: 'admin'))
         end
       end
 
@@ -233,10 +215,10 @@ describe Bosh::HuaweiCloud::Huawei do
       context 'when used multiple times' do
         it 'creates the connection lazy and caches it' do
           expect(fog[:clazz]).to receive(:new).once.and_return(instance_double(fog[:clazz]))
-          openstack = Bosh::HuaweiCloud::Huawei.new(openstack_options)
+          huaweicloud = Bosh::HuaweiCloud::Huawei.new(openstack_options)
 
-          fog_class_1st_call = openstack.send(fog[:method_name])
-          fog_class_2nd_call = openstack.send(fog[:method_name])
+          fog_class_1st_call = huaweicloud.send(fog[:method_name])
+          fog_class_2nd_call = huaweicloud.send(fog[:method_name])
 
           expect(fog_class_1st_call).to eq fog_class_2nd_call
         end
@@ -280,7 +262,7 @@ describe Bosh::HuaweiCloud::Huawei do
 
     context 'when the resource status is error' do
       before { allow(resource).to receive(:status).and_return(:error) }
-      context 'when no additional fault is provided by OpenStack' do
+      context 'when no additional fault is provided by HuaweiCloud' do
         before { allow(resource).to receive(:fault).and_return(nil) }
 
         it 'raises Bosh::Clouds::CloudError' do
@@ -298,7 +280,7 @@ describe Bosh::HuaweiCloud::Huawei do
         end
       end
 
-      context 'when additional fault is provided by OpenStack' do
+      context 'when additional fault is provided by HuaweiCloud' do
         let(:resource) { double('resource', id: 'foobar', reload: {}, fault: { 'message' => 'fault message ', 'details' => 'fault details' }) }
 
         it 'raises Bosh::Clouds::CloudError' do
@@ -311,7 +293,7 @@ describe Bosh::HuaweiCloud::Huawei do
 
     context 'when the resource status is failed' do
       before { allow(resource).to receive(:status).and_return(:failed) }
-      context 'when no additional fault is provided by OpenStack' do
+      context 'when no additional fault is provided by HuaweiCloud' do
         before { allow(resource).to receive(:fault).and_return(nil) }
 
         it 'raises Bosh::Clouds::CloudError' do
@@ -329,7 +311,7 @@ describe Bosh::HuaweiCloud::Huawei do
         end
       end
 
-      context 'when additional fault is provided by OpenStack' do
+      context 'when additional fault is provided by HuaweiCloud' do
         let(:resource) { double('resource', id: 'foobar', reload: {}, fault: { 'message' => 'fault message ', 'details' => 'fault details' }) }
 
         it 'raises Bosh::Clouds::CloudError' do
@@ -342,7 +324,7 @@ describe Bosh::HuaweiCloud::Huawei do
 
     context 'when the resource status is killed' do
       before { allow(resource).to receive(:status).and_return(:killed) }
-      context 'when no additional fault is provided by OpenStack' do
+      context 'when no additional fault is provided by HuaweiCloud' do
         before { allow(resource).to receive(:fault).and_return(nil) }
 
         it 'raises Bosh::Clouds::CloudError' do
@@ -360,7 +342,7 @@ describe Bosh::HuaweiCloud::Huawei do
         end
       end
 
-      context 'when additional fault is provided by OpenStack' do
+      context 'when additional fault is provided by HuaweiCloud' do
         let(:resource) { double('resource', id: 'foobar', reload: {}, fault: { 'message' => 'fault message ', 'details' => 'fault details' }) }
 
         it 'raises Bosh::Clouds::CloudError' do
@@ -388,22 +370,22 @@ describe Bosh::HuaweiCloud::Huawei do
     end
   end
 
-  describe 'with_openstack' do
-    context 'when openstack raises an unexpected exception' do
+  describe 'with_huaweicloud' do
+    context 'when huaweicloud raises an unexpected exception' do
       before { allow(subject).to receive(:servers).and_raise(NoMemoryError) }
 
       it 'raises the exception without waiting' do
         expect(subject).not_to receive(:sleep)
 
         expect {
-          subject.with_openstack do
+          subject.with_huaweicloud do
             subject.servers
           end
         }.to raise_error(NoMemoryError)
       end
     end
 
-    context 'when openstack raises ServiceUnavailable' do
+    context 'when huaweicloud raises ServiceUnavailable' do
       let(:headers) { {} }
       let(:body) do
         {
@@ -430,15 +412,15 @@ describe Bosh::HuaweiCloud::Huawei do
         expect(subject).to receive(:sleep).with(3).exactly(10).times
 
         expect {
-          subject.with_openstack do
+          subject.with_huaweicloud do
             subject.servers
           end
         }.to raise_error(Bosh::Clouds::CloudError,
-                         'OpenStack API Service Unavailable error. Check task debug log for details.')
+                         'HuaweiCloud API Service Unavailable error. Check task debug log for details.')
       end
     end
 
-    context 'when openstack raises RequestEntityTooLarge' do
+    context 'when huaweicloud raises RequestEntityTooLarge' do
       let(:headers) { {} }
       let(:body) do
         {
@@ -463,7 +445,7 @@ describe Bosh::HuaweiCloud::Huawei do
       it 'retries after waiting a default number of seconds' do
         expect_any_instance_of(Kernel).to receive(:sleep).with(3)
 
-        subject.with_openstack do
+        subject.with_huaweicloud do
           subject.servers
         end
       end
@@ -474,11 +456,11 @@ describe Bosh::HuaweiCloud::Huawei do
         expect_any_instance_of(Kernel).to receive(:sleep).with(3).exactly(10).times
 
         expect {
-          subject.with_openstack do
+          subject.with_huaweicloud do
             subject.servers
           end
         }.to raise_error(Bosh::Clouds::CloudError,
-                         /OpenStack API Request Entity Too Large error:/)
+                         /HuaweiCloud API Request Entity Too Large error:/)
       end
 
       context 'when the response includes a retryAfter in the body' do
@@ -487,7 +469,7 @@ describe Bosh::HuaweiCloud::Huawei do
         it 'retries after waiting the amount of seconds received at the response body' do
           expect_any_instance_of(Kernel).to receive(:sleep).with(5)
 
-          subject.with_openstack do
+          subject.with_huaweicloud do
             subject.servers
           end
         end
@@ -499,17 +481,17 @@ describe Bosh::HuaweiCloud::Huawei do
         it 'retries after waiting the amount of seconds received in the Retry-After header' do
           expect_any_instance_of(Kernel).to receive(:sleep).with(5)
 
-          subject.with_openstack do
+          subject.with_huaweicloud do
             subject.servers
           end
         end
       end
 
-      context 'when OpenStack error message contains overLimit,' do
+      context 'when HuaweiCloud error message contains overLimit,' do
         let(:body) do
           {
             'overLimit' => {
-              'message' => 'Specific OpenStack error message',
+              'message' => 'Specific HuaweiCloud error message',
               'code' => 413,
               'details' => 'Only 10 POST request(s) can be made to * every minute.',
               'retryAfter' => 0,
@@ -520,17 +502,17 @@ describe Bosh::HuaweiCloud::Huawei do
         it 'enriches the BOSH error message' do
           allow(subject).to receive(:servers).and_raise(Excon::Error::RequestEntityTooLarge.new('', '', response))
 
-          expected_message = "OpenStack API Request Entity Too Large error: Specific OpenStack error message\nCheck task debug log for details."
+          expected_message = "HuaweiCloud API Request Entity Too Large error: Specific HuaweiCloud error message\nCheck task debug log for details."
 
           expect {
-            subject.with_openstack do
+            subject.with_huaweicloud do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError, expected_message)
         end
       end
 
-      context 'when OpenStack error message does not contain overLimit,' do
+      context 'when HuaweiCloud error message does not contain overLimit,' do
         let(:body) do
           {
             'notOverLimit' => 'arbitrary content',
@@ -539,10 +521,10 @@ describe Bosh::HuaweiCloud::Huawei do
 
         it 'enriches the BOSH error message with the whole response body' do
           expected_response_body = JSON.dump('notOverLimit' => 'arbitrary content')
-          expected_message = "OpenStack API Request Entity Too Large error: #{expected_response_body}\nCheck task debug log for details."
+          expected_message = "HuaweiCloud API Request Entity Too Large error: #{expected_response_body}\nCheck task debug log for details."
 
           expect {
-            subject.with_openstack do
+            subject.with_huaweicloud do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError, expected_message)
@@ -550,7 +532,7 @@ describe Bosh::HuaweiCloud::Huawei do
       end
     end
 
-    context 'when openstack raises BadRequest' do
+    context 'when huaweicloud raises BadRequest' do
       before do
         response = Excon::Response.new(body: body)
         expect(subject).to receive(:servers).and_raise(Excon::Error::BadRequest.new('', '', response))
@@ -561,44 +543,44 @@ describe Bosh::HuaweiCloud::Huawei do
       context 'when the error includes a `message` property on 2nd level of body' do
         let(:body) { JSON.dump('SomeError' => { 'message' => 'some-message' }) }
 
-        it 'should raise a CloudError exception with OpenStack API message' do
+        it 'should raise a CloudError exception with HuaweiCloud API message' do
           expect {
-            subject.with_openstack do
+            subject.with_huaweicloud do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-                           'OpenStack API Bad Request (some-message). Check task debug log for details.')
+                           'HuaweiCloud API Bad Request (some-message). Check task debug log for details.')
         end
       end
 
       context 'when the error does not include a message' do
         let(:body) { JSON.dump('SomeError' => { 'some_key' => 'some_val' }) }
 
-        it 'should raise a CloudError exception with OpenStack API message without anything from body' do
+        it 'should raise a CloudError exception with HuaweiCloud API message without anything from body' do
           expect {
-            subject.with_openstack do
+            subject.with_huaweicloud do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-                           'OpenStack API Bad Request. Check task debug log for details.')
+                           'HuaweiCloud API Bad Request. Check task debug log for details.')
         end
       end
 
       context 'when the response has an empty body' do
         let(:body) { '' }
 
-        it 'should raise a CloudError exception without OpenStack API message' do
+        it 'should raise a CloudError exception without HuaweiCloud API message' do
           expect {
-            subject.with_openstack do
+            subject.with_huaweicloud do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-                           'OpenStack API Bad Request. Check task debug log for details.')
+                           'HuaweiCloud API Bad Request. Check task debug log for details.')
         end
       end
     end
 
-    context 'when openstack raises Conflict' do
+    context 'when huaweicloud raises Conflict' do
       before do
         response = Excon::Response.new(body: body)
         expect(subject).to receive(:servers).and_raise(Excon::Error::Conflict.new('', '', response))
@@ -609,70 +591,70 @@ describe Bosh::HuaweiCloud::Huawei do
       context 'when the error includes a `message` property on 2nd level of body' do
         let(:body) { JSON.dump('SomeError' => { 'message' => 'some-message' }) }
 
-        it 'should raise a CloudError exception with OpenStack API message' do
+        it 'should raise a CloudError exception with HuaweiCloud API message' do
           expect {
-            subject.with_openstack do
+            subject.with_huaweicloud do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-                           'OpenStack API Conflict (some-message). Check task debug log for details.')
+                           'HuaweiCloud API Conflict (some-message). Check task debug log for details.')
         end
       end
 
       context 'when the error does not include a message' do
         let(:body) { JSON.dump('SomeError' => { 'some_key' => 'some_val' }) }
 
-        it 'should raise a CloudError exception with OpenStack API message without anything from body' do
+        it 'should raise a CloudError exception with HuaweiCloud API message without anything from body' do
           expect {
-            subject.with_openstack do
+            subject.with_huaweicloud do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-                           'OpenStack API Conflict. Check task debug log for details.')
+                           'HuaweiCloud API Conflict. Check task debug log for details.')
         end
       end
 
       context 'when the response has an empty body' do
         let(:body) { '' }
 
-        it 'should raise a CloudError exception without OpenStack API message' do
+        it 'should raise a CloudError exception without HuaweiCloud API message' do
           expect {
-            subject.with_openstack do
+            subject.with_huaweicloud do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-                           'OpenStack API Conflict. Check task debug log for details.')
+                           'HuaweiCloud API Conflict. Check task debug log for details.')
         end
       end
     end
 
-    context 'when openstack raises InternalServerError' do
+    context 'when huaweicloud raises InternalServerError' do
       it 'should retry the max number of retries before raising a CloudError exception' do
         expect(subject).to receive(:servers).exactly(11)
                                             .and_raise(Excon::Error::InternalServerError.new('InternalServerError'))
         expect_any_instance_of(Kernel).to receive(:sleep).with(3).exactly(10)
 
         expect {
-          subject.with_openstack do
+          subject.with_huaweicloud do
             subject.servers
           end
         }.to raise_error(Bosh::Clouds::CloudError,
-                         'OpenStack API Internal Server error. Check task debug log for details.')
+                         'HuaweiCloud API Internal Server error. Check task debug log for details.')
       end
     end
 
-    context 'when openstack raises Fog::Errors::NotFound' do
-      it 'should raise a CloudError with the original OpenStack message' do
+    context 'when huaweicloud raises Fog::Errors::NotFound' do
+      it 'should raise a CloudError with the original HuaweiCloud message' do
         openstack_error_message = 'Could not find service network. Have compute, compute_legacy, identity, image, volume, volumev2'
 
         expect {
-          subject.with_openstack { raise Fog::Errors::NotFound, openstack_error_message }
+          subject.with_huaweicloud { raise Fog::Errors::NotFound, openstack_error_message }
         }.to raise_error(Bosh::Clouds::CloudError,
-                         "OpenStack API service not found error: #{openstack_error_message}\nCheck task debug log for details.")
+                         "HuaweiCloud API service not found error: #{openstack_error_message}\nCheck task debug log for details.")
       end
     end
 
-    context 'when openstack raises Forbidden' do
+    context 'when huaweicloud raises Forbidden' do
       before do
         response = Excon::Response.new(body: body)
         expect(subject).to receive(:servers).and_raise(Excon::Error::Forbidden.new('', '', response))
@@ -683,39 +665,39 @@ describe Bosh::HuaweiCloud::Huawei do
       context 'when the error includes a `message` property on 2nd level of body' do
         let(:body) { JSON.dump('Forbidden' => { 'message' => 'some-message' }) }
 
-        it 'should raise a CloudError exception with OpenStack API message' do
+        it 'should raise a CloudError exception with HuaweiCloud API message' do
           expect {
-            subject.with_openstack do
+            subject.with_huaweicloud do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-                           'OpenStack API Forbidden (some-message). Check task debug log for details.')
+                           'HuaweiCloud API Forbidden (some-message). Check task debug log for details.')
         end
       end
 
       context 'when the error does not include a message' do
         let(:body) { JSON.dump('SomeError' => { 'some_key' => 'some_val' }) }
 
-        it 'should raise a CloudError exception with OpenStack API message without anything from body' do
+        it 'should raise a CloudError exception with HuaweiCloud API message without anything from body' do
           expect {
-            subject.with_openstack do
+            subject.with_huaweicloud do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-                           'OpenStack API Forbidden. Check task debug log for details.')
+                           'HuaweiCloud API Forbidden. Check task debug log for details.')
         end
       end
 
       context 'when the response has an empty body' do
         let(:body) { '' }
 
-        it 'should raise a CloudError exception with OpenStack API message without anything from body' do
+        it 'should raise a CloudError exception with HuaweiCloud API message without anything from body' do
           expect {
-            subject.with_openstack do
+            subject.with_huaweicloud do
               subject.servers
             end
           }.to raise_error(Bosh::Clouds::CloudError,
-                           'OpenStack API Forbidden. Check task debug log for details.')
+                           'HuaweiCloud API Forbidden. Check task debug log for details.')
         end
       end
     end

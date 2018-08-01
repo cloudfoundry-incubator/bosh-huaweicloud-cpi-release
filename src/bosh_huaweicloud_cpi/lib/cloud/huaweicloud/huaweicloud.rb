@@ -39,53 +39,53 @@ module Bosh::HuaweiCloud
       }.merge(retry_options_overwrites)
     end
 
-    def with_openstack
+    def with_huaweicloud
       retries = 0
       begin
         yield
       rescue Excon::Error::RequestEntityTooLarge => e
-        message = "OpenStack API Request Entity Too Large error: \nCheck task debug log for details."
+        message = "HuaweiCloud API Request Entity Too Large error: \nCheck task debug log for details."
         overlimit = parse_huaweicloud_response(e.response, 'overLimit', 'overLimitFault')
 
         if overlimit
-          message.insert(46, overlimit['message'])
+          message.insert(48, overlimit['message'])
           details = "#{overlimit['message']} - #{overlimit['details']}"
 
           if retries < MAX_RETRIES
             wait_time = overlimit['retryAfter'] || e.response.headers['Retry-After'] || DEFAULT_RETRY_TIMEOUT
-            @logger.debug("OpenStack API Over Limit (#{details}), waiting #{wait_time} seconds before retrying")
+            @logger.debug("HuaweiCloud API Over Limit (#{details}), waiting #{wait_time} seconds before retrying")
             sleep(wait_time.to_i)
             retries += 1
             retry
           end
         else
-          message.insert(46, e.response.body)
+          message.insert(48, e.response.body)
         end
         cloud_error(message, e)
       rescue Excon::Error::ServiceUnavailable => e
         unless retries >= MAX_RETRIES
           retries += 1
-          @logger.debug("OpenStack API Service Unavailable error, retrying (#{retries})")
+          @logger.debug("HuaweiCloud API Service Unavailable error, retrying (#{retries})")
           sleep(DEFAULT_RETRY_TIMEOUT)
           retry
         end
-        cloud_error('OpenStack API Service Unavailable error. Check task debug log for details.', e)
+        cloud_error('HuaweiCloud API Service Unavailable error. Check task debug log for details.', e)
       rescue Excon::Error::BadRequest => e
-        cloud_error("OpenStack API Bad Request#{error_response_message(e)}. Check task debug log for details.", e)
+        cloud_error("HuaweiCloud API Bad Request#{error_response_message(e)}. Check task debug log for details.", e)
       rescue Excon::Error::Conflict => e
-        cloud_error("OpenStack API Conflict#{error_response_message(e)}. Check task debug log for details.", e)
+        cloud_error("HuaweiCloud API Conflict#{error_response_message(e)}. Check task debug log for details.", e)
       rescue Excon::Error::Forbidden => e
-        cloud_error("OpenStack API Forbidden#{error_response_message(e)}. Check task debug log for details.", e)
+        cloud_error("HuaweiCloud API Forbidden#{error_response_message(e)}. Check task debug log for details.", e)
       rescue Excon::Error::InternalServerError => e
         unless retries >= MAX_RETRIES
           retries += 1
-          @logger.debug("OpenStack API Internal Server error, retrying (#{retries})")
+          @logger.debug("HuaweiCloud API Internal Server error, retrying (#{retries})")
           sleep(DEFAULT_RETRY_TIMEOUT)
           retry
         end
-        cloud_error('OpenStack API Internal Server error. Check task debug log for details.', e)
+        cloud_error('HuaweiCloud API Internal Server error. Check task debug log for details.', e)
       rescue Fog::Errors::NotFound => e
-        cloud_error("OpenStack API service not found error: #{e.message}\nCheck task debug log for details.", e)
+        cloud_error("HuaweiCloud API service not found error: #{e.message}\nCheck task debug log for details.", e)
       end
     end
 
@@ -107,7 +107,7 @@ module Bosh::HuaweiCloud
         rescue Excon::Error::Socket => e
           cloud_error(socket_error_msg + e.message.to_s)
         rescue Bosh::Common::RetryCountExceeded, Excon::Error::Client, Excon::Error::Server => e
-          cloud_error("Unable to connect to the OpenStack Compute Service API: #{e.message}. Check task debug log for details.")
+          cloud_error("Unable to connect to the HuaweiCloud Compute Service API: #{e.message}. Check task debug log for details.")
         end
       end
       @compute
@@ -128,14 +128,14 @@ module Bosh::HuaweiCloud
         rescue Excon::Error::Socket => e
           cloud_error(socket_error_msg + e.message.to_s)
         rescue Bosh::Common::RetryCountExceeded, Excon::Error::Client, Excon::Error::Server => e
-          cloud_error("Unable to connect to the OpenStack Image Service API: #{e.message}. Check task debug log for details.")
+          cloud_error("Unable to connect to the HuaweiCloud Image Service API: #{e.message}. Check task debug log for details.")
         end
       end
       @glance
     end
 
     ##
-    # Creates a client for the OpenStack volume service, or return
+    # Creates a client for the HuaweiCloud volume service, or return
     # the existing connection
     #
     #
@@ -153,7 +153,7 @@ module Bosh::HuaweiCloud
         rescue Excon::Error::Socket => e
           cloud_error(socket_error_msg + e.message.to_s)
         rescue Bosh::Common::RetryCountExceeded, Excon::Error::Client, Excon::Error::Server => e
-          cloud_error("Unable to connect to the OpenStack Volume Service API: #{e.message}. Check task debug log for details.")
+          cloud_error("Unable to connect to the HuaweiCloud Volume Service API: #{e.message}. Check task debug log for details.")
         end
       end
 
@@ -170,7 +170,7 @@ module Bosh::HuaweiCloud
         rescue Excon::Error::Socket => e
           cloud_error(socket_error_msg + e.message.to_s)
         rescue Bosh::Common::RetryCountExceeded, Excon::Error::Client, Excon::Error::Server, Fog::Errors::NotFound => e
-          cloud_error("Unable to connect to the OpenStack Network Service API: #{e.message}. Check task debug log for details.")
+          cloud_error("Unable to connect to the HuaweiCloud Network Service API: #{e.message}. Check task debug log for details.")
         end
       end
 
@@ -199,11 +199,11 @@ module Bosh::HuaweiCloud
         # If resource reload is nil, perhaps it's because resource went away
         # (ie: a destroy operation). Don't raise an exception if this is
         # expected (allow_notfound).
-        if with_openstack { resource.reload.nil? }
+        if with_huaweicloud { resource.reload.nil? }
           break if allow_notfound
           cloud_error("#{desc}: Resource not found")
         else
-          state = with_openstack { resource.send(state_method).downcase.to_sym }
+          state = with_huaweicloud { resource.send(state_method).downcase.to_sym }
         end
 
         # This is not a very strong convention, but some resources
@@ -225,9 +225,9 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Parses and look ups for keys in an OpenStack response
+    # Parses and look ups for keys in an HuaweiCloud response
     #
-    # @param [Excon::Response] response Response from OpenStack API
+    # @param [Excon::Response] response Response from HuaweiCloud API
     # @param [Array<String>] keys Keys to look up in response
     # @return [Hash] Contents at the first key found, or nil if not found
     def parse_huaweicloud_response(response, *keys)
@@ -263,7 +263,7 @@ module Bosh::HuaweiCloud
     end
 
     def socket_error_msg
-      "Unable to connect to the OpenStack Keystone API #{auth_url}\n"
+      "Unable to connect to the HuaweiCloud Keystone API #{auth_url}\n"
     end
 
     def remove_url_trailing_slash(url)

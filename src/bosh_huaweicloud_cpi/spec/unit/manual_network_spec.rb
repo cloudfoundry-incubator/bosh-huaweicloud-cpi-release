@@ -4,7 +4,7 @@ describe Bosh::HuaweiCloud::ManualNetwork do
   subject { Bosh::HuaweiCloud::ManualNetwork.new(network_name, network_spec) }
   let(:openstack) { double(Bosh::HuaweiCloud::Huawei) }
 
-  before { allow(openstack).to receive(:with_openstack) { |&block| block.call } }
+  before { allow(openstack).to receive(:with_huaweicloud) { |&block| block.call } }
 
   describe '#initialize' do
     context 'when spec is not a hash' do
