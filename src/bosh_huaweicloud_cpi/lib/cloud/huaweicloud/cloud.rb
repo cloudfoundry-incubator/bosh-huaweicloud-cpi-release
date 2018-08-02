@@ -4,7 +4,7 @@ module Bosh::HuaweiCloud
   class Cloud < Bosh::Cloud
     include Helpers
 
-    OPTION_KEYS = %w[openstack registry agent use_dhcp].freeze
+    OPTION_KEYS = %w[huaweicloud registry agent use_dhcp].freeze
 
     BOSH_APP_DIR = '/var/vcap/bosh'.freeze
     FIRST_DEVICE_NAME_LETTER = 'b'.freeze
@@ -699,7 +699,7 @@ module Bosh::HuaweiCloud
     # @return [void]
     # @raise [ArgumentError] if options are not valid
     def validate_options
-      raise ArgumentError, "Invalid OpenStack cloud properties: No 'openstack' properties specified." unless @options['huaweicloud']
+      raise ArgumentError, "Invalid OpenStack cloud properties: No 'huaweicloud' properties specified #{@options}." unless @options['huaweicloud']
       auth_url = @options['huaweicloud']['auth_url']
       schema = Membrane::SchemaParser.parse do
         openstack_options_schema = {
@@ -730,11 +730,11 @@ module Bosh::HuaweiCloud
           optional('agent') => Hash,
         }
         if Bosh::HuaweiCloud::Huawei.is_v3(auth_url)
-          openstack_options_schema['openstack']['project'] = String
-          openstack_options_schema['openstack']['domain'] = String
+          openstack_options_schema['huaweicloud']['project'] = String
+          openstack_options_schema['huaweicloud']['domain'] = String
         else
-          openstack_options_schema['openstack']['tenant'] = String
-          openstack_options_schema['openstack'][optional('domain')] = String
+          openstack_options_schema['huaweicloud']['tenant'] = String
+          openstack_options_schema['huaweicloud'][optional('domain')] = String
         end
         openstack_options_schema
       end
