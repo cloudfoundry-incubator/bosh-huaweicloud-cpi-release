@@ -52,7 +52,7 @@ describe Bosh::HuaweiCloud::Cloud do
   end
 
   let(:cpi_for_vm) { @config.create_cpi }
-  let(:openstack) { @config.create_openstack }
+  let(:openstack) { @config.create_huaweicloud }
 
   let(:network_spec) do
     {

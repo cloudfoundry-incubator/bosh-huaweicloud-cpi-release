@@ -16,13 +16,13 @@ describe Bosh::HuaweiCloud::Cloud do
 
   it 'soft reboots an OpenStack server' do
     expect(@server).to receive(:reboot)
-    expect(@cloud.openstack).to receive(:wait_resource).with(@server, :active, :state)
+    expect(@cloud.huaweicloud).to receive(:wait_resource).with(@server, :active, :state)
     @cloud.send(:soft_reboot, @server)
   end
 
   it 'hard reboots an OpenStack server' do
     expect(@server).to receive(:reboot)
-    expect(@cloud.openstack).to receive(:wait_resource).with(@server, :active, :state)
+    expect(@cloud.huaweicloud).to receive(:wait_resource).with(@server, :active, :state)
     @cloud.send(:hard_reboot, @server)
   end
 end

@@ -12,14 +12,14 @@ module Bosh::HuaweiCloud
 
     attr_reader :registry
     attr_reader :state_timeout
-    attr_reader :openstack
+    attr_reader :huaweicloud
     attr_accessor :logger
 
     ##
     # Creates a new BOSH OpenStack CPI
     #
     # @param [Hash] options CPI options
-    # @option options [Hash] openstack OpenStack specific options
+    # @option options [Hash] huaweicloud HuaweiCloud specific options
     # @option options [Hash] agent agent options
     # @option options [Hash] registry agent options
     def initialize(options)
@@ -43,10 +43,10 @@ module Bosh::HuaweiCloud
       @use_config_drive = !!openstack_properties.fetch('config_drive', false)
       @config_drive = openstack_properties['config_drive']
 
-      @openstack = Bosh::HuaweiCloud::Huawei.new(@options['huaweicloud'])
+      @huaweicloud = Bosh::HuaweiCloud::Huawei.new(@options['huaweicloud'])
 
       @az_provider = Bosh::HuaweiCloud::AvailabilityZoneProvider.new(
-        @openstack,
+      @huaweicloud,
         openstack_properties['ignore_server_availability_zone'],
       )
 
@@ -56,23 +56,23 @@ module Bosh::HuaweiCloud
     end
 
     def compute
-      @openstack.compute
+      @huaweicloud.compute
     end
 
     def glance
-      @openstack.image
+      @huaweicloud.image
     end
 
     def volume
-      @openstack.volume
+      @huaweicloud.volume
     end
 
     def auth_url
-      @openstack.auth_url
+      @huaweicloud.auth_url
     end
 
     def network
-      @openstack.network
+      @huaweicloud.network
     end
 
     ##
@@ -93,7 +93,7 @@ module Bosh::HuaweiCloud
     # @return [String] OpenStack image UUID of the stemcell
     def create_stemcell(image_path, cloud_properties)
       with_thread_name("create_stemcell(#{image_path}...)") do
-        stemcell_creator = StemcellCreator.new(@logger, @openstack, cloud_properties)
+        stemcell_creator = StemcellCreator.new(@logger, @huaweicloud, cloud_properties)
         stemcell = stemcell_creator.create(image_path, @stemcell_public_visibility)
         stemcell.id
       end
@@ -109,7 +109,7 @@ module Bosh::HuaweiCloud
       with_thread_name("delete_stemcell(#{stemcell_id})") do
         @logger.info("Deleting stemcell `#{stemcell_id}'...")
 
-        stemcell = Stemcell.create(@logger, @openstack, stemcell_id)
+        stemcell = Stemcell.create(@logger, @huaweicloud, stemcell_id)
         stemcell.delete
       end
     end
@@ -142,7 +142,7 @@ module Bosh::HuaweiCloud
           os_scheduler_hints: cloud_properties['scheduler_hints'],
           config_drive: @use_config_drive,
         }
-        server = Server.new(@agent_properties, @human_readable_vm_names, @logger, @openstack, @registry, @use_dhcp)
+        server = Server.new(@agent_properties, @human_readable_vm_names, @logger, @huaweicloud, @registry, @use_dhcp)
 
         openstack_properties = OpenStruct.new(
           boot_from_volume: @boot_from_volume,
@@ -151,7 +151,7 @@ module Bosh::HuaweiCloud
           default_security_groups: @default_security_groups,
         )
 
-        vm_factory = VmFactory.new(@openstack, server, create_vm_params, disk_locality, @az_provider, openstack_properties)
+        vm_factory = VmFactory.new(@huaweicloud, server, create_vm_params, disk_locality, @az_provider, openstack_properties)
         network_configurator = NetworkConfigurator.new(network_spec, cloud_properties['allowed_address_pairs'])
         vm_factory.create_vm(network_configurator, agent_id, environment, stemcell_id, cloud_properties)
       end
@@ -165,11 +165,11 @@ module Bosh::HuaweiCloud
     def delete_vm(server_id)
       with_thread_name("delete_vm(#{server_id})") do
         @logger.info("Deleting server `#{server_id}'...")
-        server = @openstack.with_huaweicloud { @openstack.compute.servers.get(server_id) }
+        server = @huaweicloud.with_huaweicloud { @huaweicloud.compute.servers.get(server_id) }
         if server
           server_tags = metadata_to_tags(server.metadata)
           @logger.debug("Server tags: `#{server_tags}' found for server #{server_id}")
-          Server.new(@agent_properties, @human_readable_vm_names, @logger, @openstack, @registry, @use_dhcp).destroy(server, server_tags)
+          Server.new(@agent_properties, @human_readable_vm_names, @logger, @huaweicloud, @registry, @use_dhcp).destroy(server, server_tags)
         else
           @logger.info("Server `#{server_id}' not found. Skipping.")
         end
@@ -183,7 +183,7 @@ module Bosh::HuaweiCloud
     # @return [Boolean] True if the vm exists
     def has_vm?(server_id)
       with_thread_name("has_vm?(#{server_id})") do
-        server = @openstack.with_huaweicloud { @openstack.compute.servers.get(server_id) }
+        server = @huaweicloud.with_huaweicloud { @huaweicloud.compute.servers.get(server_id) }
         !server.nil? && !%i[terminated deleted].include?(server.state.downcase.to_sym)
       end
     end
@@ -195,7 +195,7 @@ module Bosh::HuaweiCloud
     # @return [void]
     def reboot_vm(server_id)
       with_thread_name("reboot_vm(#{server_id})") do
-        server = @openstack.with_huaweicloud { @openstack.compute.servers.get(server_id) }
+        server = @huaweicloud.with_huaweicloud { @huaweicloud.compute.servers.get(server_id) }
         cloud_error("Server `#{server_id}' not found") unless server
 
         soft_reboot(server)
@@ -224,7 +224,7 @@ module Bosh::HuaweiCloud
     #   this disk will be attached to
     # @return [String] OpenStack volume UUID
     def create_disk(size, cloud_properties, server_id = nil)
-      volume_service_client = @openstack.volume
+      volume_service_client = @huaweicloud.volume
       with_thread_name("create_disk(#{size}, #{cloud_properties}, #{server_id})") do
         raise ArgumentError, 'Disk size needs to be an integer' unless size.is_a?(Integer)
         cloud_error('Minimum disk size is 1 GiB') if size < 1024
@@ -247,15 +247,15 @@ module Bosh::HuaweiCloud
         end
 
         if server_id && @az_provider.use_server_availability_zone?
-          server = @openstack.with_huaweicloud { @openstack.compute.servers.get(server_id) }
+          server = @huaweicloud.with_huaweicloud { @huaweicloud.compute.servers.get(server_id) }
           volume_params[:availability_zone] = server.availability_zone if server&.availability_zone
         end
 
         @logger.info('Creating new volume...')
-        new_volume = @openstack.with_huaweicloud { volume_service_client.volumes.create(volume_params) }
+        new_volume = @huaweicloud.with_huaweicloud { volume_service_client.volumes.create(volume_params) }
 
         @logger.info("Creating new volume `#{new_volume.id}'...")
-        @openstack.wait_resource(new_volume, :available)
+        @huaweicloud.wait_resource(new_volume, :available)
 
         new_volume.id.to_s
       end
@@ -269,7 +269,7 @@ module Bosh::HuaweiCloud
     def has_disk?(disk_id)
       with_thread_name("has_disk?(#{disk_id})") do
         @logger.info("Check the presence of disk with id `#{disk_id}'...")
-        volume = @openstack.with_huaweicloud { @openstack.volume.volumes.get(disk_id) }
+        volume = @huaweicloud.with_huaweicloud { @huaweicloud.volume.volumes.get(disk_id) }
 
         !volume.nil?
       end
@@ -284,13 +284,13 @@ module Bosh::HuaweiCloud
     def delete_disk(disk_id)
       with_thread_name("delete_disk(#{disk_id})") do
         @logger.info("Deleting volume `#{disk_id}'...")
-        volume = @openstack.with_huaweicloud { @openstack.volume.volumes.get(disk_id) }
+        volume = @huaweicloud.with_huaweicloud { @huaweicloud.volume.volumes.get(disk_id) }
         if volume
           state = volume.status
           cloud_error("Cannot delete volume `#{disk_id}', state is #{state}") if state.to_sym != :available
 
-          @openstack.with_huaweicloud { volume.destroy }
-          @openstack.wait_resource(volume, :deleted, :status, true)
+          @huaweicloud.with_huaweicloud { volume.destroy }
+          @huaweicloud.wait_resource(volume, :deleted, :status, true)
         else
           @logger.info("Volume `#{disk_id}' not found. Skipping.")
         end
@@ -305,10 +305,10 @@ module Bosh::HuaweiCloud
     # @return [void]
     def attach_disk(server_id, disk_id)
       with_thread_name("attach_disk(#{server_id}, #{disk_id})") do
-        server = @openstack.with_huaweicloud { @openstack.compute.servers.get(server_id) }
+        server = @huaweicloud.with_huaweicloud { @huaweicloud.compute.servers.get(server_id) }
         cloud_error("Server `#{server_id}' not found") unless server
 
-        volume = @openstack.with_huaweicloud { @openstack.volume.volumes.get(disk_id) }
+        volume = @huaweicloud.with_huaweicloud { @huaweicloud.volume.volumes.get(disk_id) }
         cloud_error("Volume `#{disk_id}' not found") unless volume
 
         device_name = attach_volume(server, volume)
@@ -329,10 +329,10 @@ module Bosh::HuaweiCloud
     # @return [void]
     def detach_disk(server_id, disk_id)
       with_thread_name("detach_disk(#{server_id}, #{disk_id})") do
-        server = @openstack.with_huaweicloud { @openstack.compute.servers.get(server_id) }
+        server = @huaweicloud.with_huaweicloud { @huaweicloud.compute.servers.get(server_id) }
         cloud_error("Server `#{server_id}' not found") unless server
 
-        volume = @openstack.with_huaweicloud { @openstack.volume.volumes.get(disk_id) }
+        volume = @huaweicloud.with_huaweicloud { @huaweicloud.volume.volumes.get(disk_id) }
         if volume.nil?
           @logger.info("Disk `#{disk_id}' not found while trying to detach it from vm `#{server_id}'...")
         else
@@ -357,7 +357,7 @@ module Bosh::HuaweiCloud
     def snapshot_disk(disk_id, metadata)
       with_thread_name("snapshot_disk(#{disk_id})") do
         metadata = Hash[metadata.map { |key, value| [key.to_s, value] }]
-        volume = @openstack.with_huaweicloud { @openstack.volume.volumes.get(disk_id) }
+        volume = @huaweicloud.with_huaweicloud { @huaweicloud.volume.volumes.get(disk_id) }
         cloud_error("Volume `#{disk_id}' not found") unless volume
 
         devices = []
@@ -378,13 +378,13 @@ module Bosh::HuaweiCloud
         }
 
         @logger.info("Creating new snapshot for volume `#{disk_id}'...")
-        snapshot = @openstack.volume.snapshots.new(snapshot_params)
-        @openstack.with_huaweicloud {
+        snapshot = @huaweicloud.volume.snapshots.new(snapshot_params)
+        @huaweicloud.with_huaweicloud {
           snapshot.save
         }
 
         @logger.info("Creating new snapshot `#{snapshot.id}' for volume `#{disk_id}'...")
-        @openstack.wait_resource(snapshot, :available)
+        @huaweicloud.wait_resource(snapshot, :available)
 
         metadata.merge!(
           'director' => metadata['director_name'],
@@ -397,7 +397,7 @@ module Bosh::HuaweiCloud
         metadata.delete('job')
 
         @logger.info("Creating metadata for snapshot `#{snapshot.id}'...")
-        @openstack.with_huaweicloud {
+        @huaweicloud.with_huaweicloud {
           TagManager.tag_snapshot(snapshot, metadata)
         }
 
@@ -414,13 +414,13 @@ module Bosh::HuaweiCloud
     def delete_snapshot(snapshot_id)
       with_thread_name("delete_snapshot(#{snapshot_id})") do
         @logger.info("Deleting snapshot `#{snapshot_id}'...")
-        snapshot = @openstack.with_huaweicloud { @openstack.volume.snapshots.get(snapshot_id) }
+        snapshot = @huaweicloud.with_huaweicloud { @huaweicloud.volume.snapshots.get(snapshot_id) }
         if snapshot
           state = snapshot.status
           cloud_error("Cannot delete snapshot `#{snapshot_id}', state is #{state}") if state.to_sym != :available
 
-          @openstack.with_huaweicloud { snapshot.destroy }
-          @openstack.wait_resource(snapshot, :deleted, :status, true)
+          @huaweicloud.with_huaweicloud { snapshot.destroy }
+          @huaweicloud.wait_resource(snapshot, :deleted, :status, true)
         else
           @logger.info("Snapshot `#{snapshot_id}' not found. Skipping.")
         end
@@ -435,8 +435,8 @@ module Bosh::HuaweiCloud
     # @return [void]
     def set_vm_metadata(server_id, metadata)
       with_thread_name("set_vm_metadata(#{server_id}, ...)") do
-        @openstack.with_huaweicloud do
-          server = @openstack.compute.servers.get(server_id)
+        @huaweicloud.with_huaweicloud do
+          server = @huaweicloud.compute.servers.get(server_id)
           cloud_error("Server `#{server_id}' not found") unless server
 
           TagManager.tag_server(server, metadata)
@@ -448,13 +448,13 @@ module Bosh::HuaweiCloud
             compiling = metadata['compiling']
             if name
               @logger.debug("Rename VM with id '#{server_id}' to '#{name}'")
-              @openstack.compute.update_server(server_id, 'name' => name.to_s)
+              @huaweicloud.compute.update_server(server_id, 'name' => name.to_s)
             elsif job && index
               @logger.debug("Rename VM with id '#{server_id}' to '#{job}/#{index}'")
-              @openstack.compute.update_server(server_id, 'name' => "#{job}/#{index}")
+              @huaweicloud.compute.update_server(server_id, 'name' => "#{job}/#{index}")
             elsif compiling
               @logger.debug("Rename VM with id '#{server_id}' to 'compiling/#{compiling}'")
-              @openstack.compute.update_server(server_id, 'name' => "compiling/#{compiling}")
+              @huaweicloud.compute.update_server(server_id, 'name' => "compiling/#{compiling}")
             end
           else
             @logger.debug("VM with id '#{server_id}' has no 'registry_key' tag")
@@ -471,10 +471,10 @@ module Bosh::HuaweiCloud
     # @return [void]
     def set_disk_metadata(disk_id, metadata)
       with_thread_name("set_disk_metadata(#{disk_id}, ...)") do
-        @openstack.with_huaweicloud do
-          disk = @openstack.volume.volumes.get(disk_id)
+        @huaweicloud.with_huaweicloud do
+          disk = @huaweicloud.volume.volumes.get(disk_id)
           cloud_error("Disk `#{disk_id}' not found") unless disk
-          TagManager.tag_volume(@openstack.volume, disk_id, metadata)
+          TagManager.tag_volume(@huaweicloud.volume, disk_id, metadata)
         end
       end
     end
@@ -531,8 +531,8 @@ module Bosh::HuaweiCloud
 
       with_thread_name("resize_disk(#{disk_id}, #{new_size_gib})") do
         @logger.info("Resizing volume `#{disk_id}'...")
-        @openstack.with_huaweicloud do
-          volume = @openstack.volume.volumes.get(disk_id)
+        @huaweicloud.with_huaweicloud do
+          volume = @huaweicloud.volume.volumes.get(disk_id)
           cloud_error("Cannot resize volume because volume with #{disk_id} not found") unless volume
           actual_size_gib = volume.size
           if actual_size_gib == new_size_gib
@@ -544,7 +544,7 @@ module Bosh::HuaweiCloud
             cloud_error("Cannot resize volume '#{disk_id}' it still has #{attachments.size} attachment(s)") unless attachments.empty?
             volume.extend(new_size_gib)
             @logger.info("Resizing #{disk_id} from #{actual_size_gib} GiB to #{new_size_gib} GiB")
-            @openstack.wait_resource(volume, :available)
+            @huaweicloud.wait_resource(volume, :available)
             @logger.info("Disk #{disk_id} resized from #{actual_size_gib} GiB to #{new_size_gib} GiB")
           end
         end
@@ -560,7 +560,7 @@ module Bosh::HuaweiCloud
     end
 
     def registry_key_for(server)
-      registry_key_metadatum = @openstack.with_huaweicloud { server.metadata.get(REGISTRY_KEY_TAG) }
+      registry_key_metadatum = @huaweicloud.with_huaweicloud { server.metadata.get(REGISTRY_KEY_TAG) }
       registry_key_metadatum ? registry_key_metadatum.value : server.name
     end
 
@@ -579,8 +579,8 @@ module Bosh::HuaweiCloud
     # @return [void]
     def soft_reboot(server)
       @logger.info("Soft rebooting server `#{server.id}'...")
-      @openstack.with_huaweicloud { server.reboot }
-      @openstack.wait_resource(server, :active, :state)
+      @huaweicloud.with_huaweicloud { server.reboot }
+      @huaweicloud.wait_resource(server, :active, :state)
     end
 
     ##
@@ -590,8 +590,8 @@ module Bosh::HuaweiCloud
     # @return [void]
     def hard_reboot(server)
       @logger.info("Hard rebooting server `#{server.id}'...")
-      @openstack.with_huaweicloud { server.reboot(type = 'HARD') }
-      @openstack.wait_resource(server, :active, :state)
+      @huaweicloud.with_huaweicloud { server.reboot(type = 'HARD') }
+      @huaweicloud.wait_resource(server, :active, :state)
     end
 
     ##
@@ -602,7 +602,7 @@ module Bosh::HuaweiCloud
     # @return [String] Device name
     def attach_volume(server, volume)
       @logger.info("Attaching volume `#{volume.id}' to server `#{server.id}'...")
-      volume_attachments = @openstack.with_huaweicloud { server.volume_attachments }
+      volume_attachments = @huaweicloud.with_huaweicloud { server.volume_attachments }
       device = volume_attachments.find { |a| a['volumeId'] == volume.id }
 
       if device.nil?
@@ -610,8 +610,8 @@ module Bosh::HuaweiCloud
         cloud_error('Server has too many disks attached') if device_name.nil?
 
         @logger.info("Attaching volume `#{volume.id}' to server `#{server.id}', device name is `#{device_name}'")
-        @openstack.with_huaweicloud { server.attach_volume(volume.id, device_name) }
-        @openstack.wait_resource(volume, :'in-use')
+        @huaweicloud.with_huaweicloud { server.attach_volume(volume.id, device_name) }
+        @huaweicloud.wait_resource(volume, :'in-use')
       else
         device_name = device['device']
         @logger.info("Volume `#{volume.id}' is already attached to server `#{server.id}' in `#{device_name}'. Skipping.")
@@ -647,7 +647,7 @@ module Bosh::HuaweiCloud
       letter = FIRST_DEVICE_NAME_LETTER.dup
       return letter if server.flavor.nil?
       return letter unless server.flavor.key?('id')
-      flavor = @openstack.with_huaweicloud { @openstack.compute.flavors.find { |f| f.id == server.flavor['id'] } }
+      flavor = @huaweicloud.with_huaweicloud { @huaweicloud.compute.flavors.find { |f| f.id == server.flavor['id'] } }
       return letter if flavor.nil?
 
       letter.succ! if flavor_has_ephemeral_disk?(flavor)
@@ -664,11 +664,11 @@ module Bosh::HuaweiCloud
     # @return [void]
     def detach_volume(server, volume)
       @logger.info("Detaching volume `#{volume.id}' from `#{server.id}'...")
-      volume_attachments = @openstack.with_huaweicloud { server.volume_attachments }
+      volume_attachments = @huaweicloud.with_huaweicloud { server.volume_attachments }
       attachment = volume_attachments.find { |a| a['volumeId'] == volume.id }
       if attachment
-        @openstack.with_huaweicloud { server.detach_volume(volume.id) }
-        @openstack.wait_resource(volume, :available)
+        @huaweicloud.with_huaweicloud { server.detach_volume(volume.id) }
+        @huaweicloud.wait_resource(volume, :available)
       else
         @logger.info("Disk `#{volume.id}' is not attached to server `#{server.id}'. Skipping.")
       end

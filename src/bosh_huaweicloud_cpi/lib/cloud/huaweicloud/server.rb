@@ -4,11 +4,11 @@ module Bosh::HuaweiCloud
 
     REGISTRY_KEY_TAG = :registry_key
 
-    def initialize(agent_properties, human_readable_vm_names, logger, openstack, registry, use_dhcp)
+    def initialize(agent_properties, human_readable_vm_names, logger, huaweicloud, registry, use_dhcp)
       @agent_properties = agent_properties
       @human_readable_vm_names = human_readable_vm_names
       @logger = logger
-      @openstack = openstack
+      @huaweicloud = huaweicloud
       @registry = registry
       @use_dhcp = use_dhcp
     end
@@ -24,7 +24,7 @@ module Bosh::HuaweiCloud
       create_vm_params = create_vm_params.dup
 
       begin
-        @openstack.with_huaweicloud { network_configurator.prepare(@openstack) }
+        @huaweicloud.with_huaweicloud { network_configurator.prepare(@huaweicloud) }
         pick_nics(create_vm_params, network_configurator)
         server = create_server(create_vm_params)
         configure_server(network_configurator, server)
@@ -42,8 +42,8 @@ module Bosh::HuaweiCloud
         end
 
         begin
-          @openstack.with_huaweicloud {
-            network_configurator.cleanup(@openstack)
+          @huaweicloud.with_huaweicloud {
+            network_configurator.cleanup(@huaweicloud)
           }
         rescue StandardError => cleanup_error
           @logger.warn("Failed to cleanup network resources: #{cleanup_error.message}")
@@ -54,16 +54,16 @@ module Bosh::HuaweiCloud
 
     def destroy(server, server_tags)
       server_tags ||= {}
-      server_port_ids = NetworkConfigurator.port_ids(@openstack, server.id)
+      server_port_ids = NetworkConfigurator.port_ids(@huaweicloud, server.id)
       @logger.debug("Network ports: `#{server_port_ids.join(', ')}' found for server #{server.id}")
       bosh_group = "#{server_tags['director']}-#{server_tags['deployment']}-#{server_tags['instance_group']}"
 
-      lbaas_error = catch_error('Removing lbaas pool memberships') { LoadbalancerConfigurator.new(@openstack, @logger).cleanup_memberships(server_tags) }
-      @openstack.with_huaweicloud { server.destroy }
+      lbaas_error = catch_error('Removing lbaas pool memberships') { LoadbalancerConfigurator.new(@huaweicloud, @logger).cleanup_memberships(server_tags) }
+      @huaweicloud.with_huaweicloud { server.destroy }
       fail_on_error(
-        catch_error('Wait for server deletion') { @openstack.wait_resource(server, %i[terminated deleted], :state, true) },
-        catch_error('Removing ports') { NetworkConfigurator.cleanup_ports(@openstack, server_port_ids) },
-        catch_error('Delete server group if empty') { ServerGroups.new(@openstack).delete_if_no_members(Bosh::Clouds::Config.uuid, bosh_group) },
+        catch_error('Wait for server deletion') { @huaweicloud.wait_resource(server, %i[terminated deleted], :state, true) },
+        catch_error('Removing ports') { NetworkConfigurator.cleanup_ports(@huaweicloud, server_port_ids) },
+        catch_error('Delete server group if empty') { ServerGroups.new(@huaweicloud).delete_if_no_members(Bosh::Clouds::Config.uuid, bosh_group) },
         lbaas_error,
         catch_error('Deleting registry settings') {
           registry_key = server_tags.fetch(REGISTRY_KEY_TAG.to_s, server.name)
@@ -84,16 +84,16 @@ module Bosh::HuaweiCloud
 
     def create_server(create_vm_params)
       @logger.debug("Using boot parms: `#{Bosh::Cpi::Redactor.clone_and_redact(create_vm_params, 'user_data').inspect}'")
-      server = @openstack.with_huaweicloud do
+      server = @huaweicloud.with_huaweicloud do
         begin
-          @openstack.compute.servers.create(create_vm_params)
+          @huaweicloud.compute.servers.create(create_vm_params)
         rescue Excon::Error::Timeout => e
           @logger.debug(e.backtrace)
           cloud_error_message = "VM creation with name '#{create_vm_params[:name]}' received a timeout. " \
                                 "The VM might still have been created by OpenStack.\nOriginal message: "
           raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
         rescue Excon::Error::BadRequest, Excon::Error::NotFound, Fog::Compute::HuaweiCloud::NotFound => e
-          raise e if @openstack.use_nova_networking?
+          raise e if @huaweicloud.use_nova_networking?
           not_existing_net_ids = not_existing_net_ids(create_vm_params[:nics])
           raise e if not_existing_net_ids.empty?
           @logger.debug(e.backtrace)
@@ -103,7 +103,7 @@ module Bosh::HuaweiCloud
           raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message
         rescue Excon::Error::Forbidden => e
           raise e unless e.message.include? 'Quota exceeded, too many servers in group'
-          raise Bosh::Clouds::CloudError, "You have reached your quota for members in a server group for project '#{@openstack.project_name}'. Please disable auto-anti-affinity server groups or increase your quota."
+          raise Bosh::Clouds::CloudError, "You have reached your quota for members in a server group for project '#{@huaweicloud.project_name}'. Please disable auto-anti-affinity server groups or increase your quota."
         end
       end
       server
@@ -112,10 +112,10 @@ module Bosh::HuaweiCloud
     def configure_server(network_configurator, server)
       @logger.info("Creating new server `#{server.id}'...")
       begin
-        @openstack.wait_resource(server, :active, :state)
+        @huaweicloud.wait_resource(server, :active, :state)
 
         @logger.info("Configuring network for server `#{server.id}'...")
-        @openstack.with_huaweicloud { network_configurator.configure(@openstack, server) }
+        @huaweicloud.with_huaweicloud { network_configurator.configure(@huaweicloud, server) }
       rescue StandardError => e
         @logger.warn("Failed to create server: #{e.message}")
         raise Bosh::Clouds::VMCreationFailed.new(true), e.message
@@ -133,7 +133,7 @@ module Bosh::HuaweiCloud
 
       server_tags.merge!(
         LoadbalancerConfigurator
-        .new(@openstack, @logger)
+        .new(@huaweicloud, @logger)
         .create_pool_memberships(server, network_spec, loadbalancer_pools),
       )
 
@@ -181,7 +181,7 @@ module Bosh::HuaweiCloud
     def not_existing_net_ids(nics)
       result = []
       begin
-        network = @openstack.network
+        network = @huaweicloud.network
         nics.each do |nic|
           if nic['subnet_id']
             result << nic['subnet_id'] unless network.networks.get(nic['subnet_id'])

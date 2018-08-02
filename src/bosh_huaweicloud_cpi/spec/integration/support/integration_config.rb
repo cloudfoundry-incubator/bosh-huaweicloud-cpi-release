@@ -90,7 +90,7 @@ class IntegrationConfig
 
   def create_cpi(boot_from_volume: false, config_drive: nil, human_readable_vm_names: false, use_nova_networking: false, use_dhcp: true, default_volume_type: nil, enable_auto_anti_affinity: false, request_id: nil)
     properties = {
-      'openstack' => openstack_properties(boot_from_volume, config_drive, human_readable_vm_names, use_nova_networking, use_dhcp, default_volume_type, enable_auto_anti_affinity),
+      'huaweicloud' => huaweicloud_properties(boot_from_volume, config_drive, human_readable_vm_names, use_nova_networking, use_dhcp, default_volume_type, enable_auto_anti_affinity),
       'registry' => {
         'endpoint' => 'fake',
         'user' => 'fake',
@@ -100,11 +100,11 @@ class IntegrationConfig
     Bosh::HuaweiCloud::Cloud.new(properties)
   end
 
-  def create_openstack
-    Bosh::HuaweiCloud::Huawei.new(openstack_properties, {}, {})
+  def create_huaweicloud
+    Bosh::HuaweiCloud::Huawei.new(huaweicloud_properties, {}, {})
   end
 
-  def openstack_properties(boot_from_volume = false, config_drive = nil, human_readable_vm_names = false, use_nova_networking = false, use_dhcp = true, default_volume_type = nil, enable_auto_anti_affinity = false)
+  def huaweicloud_properties(boot_from_volume = false, config_drive = nil, human_readable_vm_names = false, use_nova_networking = false, use_dhcp = true, default_volume_type = nil, enable_auto_anti_affinity = false)
     properties = {
       'auth_url' => @auth_url,
       'username' => @username,

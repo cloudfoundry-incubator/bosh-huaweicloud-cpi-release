@@ -2,15 +2,15 @@ module Bosh::HuaweiCloud
   class SecurityGroups
     include Helpers
 
-    def self.select_and_retrieve(openstack, default_security_groups, network_spec_security_groups, resource_pool_spec_security_groups)
+    def self.select_and_retrieve(huaweicloud, default_security_groups, network_spec_security_groups, resource_pool_spec_security_groups)
       picked_security_groups = pick_security_groups(
         default_security_groups,
         network_spec_security_groups,
         resource_pool_spec_security_groups,
       )
 
-      openstack_security_groups = openstack.with_huaweicloud {
-        retrieve_security_groups(openstack)
+      openstack_security_groups = huaweicloud.with_huaweicloud {
+        retrieve_security_groups(huaweicloud)
       }
 
       map_to_security_groups_in_openstack(picked_security_groups, openstack_security_groups)
@@ -18,11 +18,11 @@ module Bosh::HuaweiCloud
 
     private
 
-    def self.retrieve_security_groups(openstack)
-      if openstack.use_nova_networking?
-        openstack.compute.security_groups
+    def self.retrieve_security_groups(huaweicloud)
+      if huaweicloud.use_nova_networking?
+        huaweicloud.compute.security_groups
       else
-        openstack.network.security_groups
+        huaweicloud.network.security_groups
       end
     end
 

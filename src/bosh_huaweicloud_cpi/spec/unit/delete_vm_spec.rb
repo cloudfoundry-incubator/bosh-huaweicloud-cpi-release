@@ -32,7 +32,7 @@ describe Bosh::HuaweiCloud::Cloud do
     allow(Bosh::HuaweiCloud::NetworkConfigurator).to receive(:port_ids).and_return(['port_id'])
     allow(Bosh::HuaweiCloud::NetworkConfigurator).to receive(:cleanup_ports)
     allow(server).to receive(:destroy)
-    allow(cloud.openstack).to receive(:wait_resource)
+    allow(cloud.huaweicloud).to receive(:wait_resource)
     allow(@registry).to receive(:delete_settings)
     allow(Bosh::HuaweiCloud::LoadbalancerConfigurator).to receive(:new).and_return(loadbalancer_configurator)
     allow(loadbalancer_configurator).to receive(:cleanup_memberships)
@@ -79,7 +79,7 @@ describe Bosh::HuaweiCloud::Cloud do
       'registry_key' => 'vm-registry-key',
     ).ordered
     expect(server).to have_received(:destroy).ordered
-    expect(cloud.openstack).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true).ordered
+    expect(cloud.huaweicloud).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true).ordered
     expect(Bosh::HuaweiCloud::NetworkConfigurator).to have_received(:cleanup_ports).with(any_args, ['port_id']).ordered
     expect(@registry).to have_received(:delete_settings).with(registry_key)
   end
@@ -88,7 +88,7 @@ describe Bosh::HuaweiCloud::Cloud do
     cloud.delete_vm('i-foobar')
 
     expect(server).to have_received(:destroy).ordered
-    expect(cloud.openstack).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true).ordered
+    expect(cloud.huaweicloud).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true).ordered
     expect(server_groups).to have_received(:delete_if_no_members).ordered
   end
 

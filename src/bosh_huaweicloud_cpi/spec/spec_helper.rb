@@ -13,9 +13,9 @@ require 'cloud/huaweicloud'
 def mock_cloud_options(api_version = 2)
   if api_version == 2
     {
-      'plugin' => 'openstack',
+      'plugin' => 'huaweicloud',
       'properties' => {
-        'openstack' => {
+        'huaweicloud' => {
           'auth_url' => 'http://127.0.0.1:5000/v2.0',
           'username' => 'admin',
           'api_key' => 'nova',
@@ -39,9 +39,9 @@ def mock_cloud_options(api_version = 2)
     }
   elsif api_version == 3
     {
-      'plugin' => 'openstack',
+      'plugin' => 'huaweicloud',
       'properties' => {
-        'openstack' => {
+        'huaweicloud' => {
           'auth_url' => 'http://127.0.0.1:5000/v3',
           'username' => 'admin',
           'api_key' => 'nova',
@@ -84,6 +84,7 @@ def mock_cloud(options = nil)
   volumes = double('volumes')
   snapshots = double('snapshots')
   key_pairs = double('key_pairs')
+  subnets = double('subnets')
   security_groups = [double('default_sec_group', id: 'default_sec_group_id', name: 'default')]
 
   image = double(Fog::Image::HuaweiCloud::V2)
@@ -97,6 +98,7 @@ def mock_cloud(options = nil)
 
   network = double(Fog::Network::HuaweiCloud)
   allow(network).to receive(:security_groups).and_return(security_groups)
+  allow(network).to receive(:subnets).and_return(subnets)
   allow(Fog::Network::HuaweiCloud).to receive(:new).and_return(network)
 
   compute = double(Fog::Compute)
@@ -120,7 +122,7 @@ def mock_glance_v1(options = nil)
   cloud = mock_cloud(options)
 
   image = double(Fog::Image::HuaweiCloud::V1, images: double('images'))
-  allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(image)
+  allow(cloud.instance_variable_get('@huaweicloud')).to receive(:image).and_return(image)
   allow(image).to receive(:class).and_return(Fog::Image::HuaweiCloud::V1)
 
   yield image if block_given?
@@ -132,7 +134,7 @@ def mock_glance_v2(options = nil)
   cloud = mock_cloud(options)
 
   image = double(Fog::Image::HuaweiCloud::V2, images: double('images'))
-  allow(cloud.instance_variable_get('@openstack')).to receive(:image).and_return(image)
+  allow(cloud.instance_variable_get('@huaweicloud')).to receive(:image).and_return(image)
   allow(image).to receive(:class).and_return(Fog::Image::HuaweiCloud::V2)
 
   yield image if block_given?

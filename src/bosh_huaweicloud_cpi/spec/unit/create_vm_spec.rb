@@ -100,7 +100,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     allow(@registry).to receive(:delete_settings)
     allow(@registry).to receive(:update_settings)
     allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    allow(cloud.openstack).to receive(:wait_resource)
+    allow(cloud.huaweicloud).to receive(:wait_resource)
     allow(Bosh::HuaweiCloud::TagManager).to receive(:tag_server)
     allow(Bosh::HuaweiCloud::NetworkConfigurator).to receive(:port_ids).and_return([])
   end
@@ -115,38 +115,41 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
 
   it "creates an Huawei Cloud server and polls until it's ready" do
     vm_id = cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-    expect(cloud.openstack).to have_received(:wait_resource).with(server, :active, :state)
+    expect(cloud.huaweicloud).to have_received(:wait_resource).with(server, :active, :state)
     expect(vm_id).to eq('i-test')
   end
 
   describe 'multi-homed VMs' do
+    let(:subnet) { double('subnet', cidr: '10.0.0.0/24')}
     let(:cloud) do
       cloud_options = mock_cloud_options['properties']
-      cloud_options['openstack'].merge!(
+      cloud_options['huaweicloud'].merge!(
         'config_drive' => 'cdrom',
         'use_dhcp' => false,
         'use_nova_networking' => false,
       )
 
-      mock_cloud(cloud_options) do |openstack|
-        allow(openstack.compute.servers).to receive(:create).and_return(server)
-        allow(openstack.image.images).to receive(:find_by_id).and_return(image)
-        allow(openstack.compute.flavors).to receive(:find).and_return(flavor)
-        allow(openstack.compute.key_pairs).to receive(:find).and_return(key_pair)
+      mock_cloud(cloud_options) do |huaweicloud|
+        allow(huaweicloud.compute.servers).to receive(:create).and_return(server)
+        allow(huaweicloud.image.images).to receive(:find_by_id).and_return(image)
+        allow(huaweicloud.compute.flavors).to receive(:find).and_return(flavor)
+        allow(huaweicloud.compute.key_pairs).to receive(:find).and_return(key_pair)
+        allow(huaweicloud.network.subnets).to receive(:get).and_return(subnet)
         port_result_net = double('ports1', id: '117717c1-81cb-4ac4-96ab-99aaf1be9ca8', network_id: 'net', mac_address: 'AA:AA:AA:AA:AA:AA')
         ports = double('Fog::Network::HuaweiCloud::Ports')
         allow(ports).to receive(:create).with(network_id: 'net', fixed_ips: [{ ip_address: '10.0.0.1' }], security_groups: ['default_sec_group_id']).and_return(port_result_net)
-        allow(openstack.network).to receive(:ports).and_return(ports)
+        allow(huaweicloud.network).to receive(:ports).and_return(ports)
       end
     end
     let(:network_spec) { { 'network_a' => manual_network_spec(ip: '10.0.0.1') } }
-    let(:expected_network_spec) { { 'network_a' => manual_network_spec(ip: '10.0.0.1', overwrites: { 'mac' => 'AA:AA:AA:AA:AA:AA', 'use_dhcp' => false }) } }
+    let(:expected_network_spec) { { 'network_a' => manual_network_spec(ip: '10.0.0.1', overwrites: { 'use_dhcp' => false }) } }
     let(:nics) { [{ 'subnet_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8' }] }
 
     it 'creates an Huawei Cloud server with config drive and mac addresses' do
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_spec, nil, environment)
 
-      expect(cloud.compute.servers).to have_received(:create).with(huaweicloud_params(expected_network_spec).merge(config_drive: true))
+      expect(cloud.compute.servers).to have_received(:create).with(huaweicloud_params(expected_network_spec).merge(
+          config_drive: true, nics:[{"subnet_id"=>"net","fixed_ip"=>"10.0.0.1"}]))
     end
   end
 
@@ -161,7 +164,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     it 'passes dns servers in server user data when present' do
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => network_spec }, nil, environment)
 
-      expect(cloud.openstack.compute.servers).to have_received(:create).with(huaweicloud_params('network_a' => network_spec))
+      expect(cloud.huaweicloud.compute.servers).to have_received(:create).with(huaweicloud_params('network_a' => network_spec))
       expect(@registry).to have_received(:update_settings).with("vm-#{unique_name}", agent_settings(unique_name, network_spec))
     end
   end
@@ -292,8 +295,8 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     let(:configured_security_groups) { %w[default default] }
     let(:options) do
       cloud_options = mock_cloud_options
-      cloud_options['properties']['openstack']['config_drive'] = 'cdrom'
-      cloud_options['properties']['openstack']['use_dhcp'] = false
+      cloud_options['properties']['huaweicloud']['config_drive'] = 'cdrom'
+      cloud_options['properties']['huaweicloud']['use_dhcp'] = false
       cloud_options['properties']
     end
 
@@ -382,7 +385,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     context 'globally' do
       let(:options) do
         cloud_options = mock_cloud_options
-        cloud_options['properties']['openstack']['boot_from_volume'] = true
+        cloud_options['properties']['huaweicloud']['boot_from_volume'] = true
         cloud_options['properties']
       end
 
@@ -397,7 +400,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
       let(:resource_pool_spec_with_boot_from_volume) { resource_pool_spec.merge('boot_from_volume' => true) }
       let(:options) do
         cloud_options = mock_cloud_options
-        cloud_options['properties']['openstack']['boot_from_volume'] = false
+        cloud_options['properties']['huaweicloud']['boot_from_volume'] = false
         cloud_options['properties']
       end
 
@@ -411,8 +414,8 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     context 'and a volume_type as well' do
       let(:options) do
         cloud_options = mock_cloud_options
-        cloud_options['properties']['openstack']['boot_from_volume'] = true
-        cloud_options['properties']['openstack']['boot_volume_cloud_properties'] = { 'type' => 'foo' }
+        cloud_options['properties']['huaweicloud']['boot_from_volume'] = true
+        cloud_options['properties']['huaweicloud']['boot_volume_cloud_properties'] = { 'type' => 'foo' }
         cloud_options['properties']
       end
 
@@ -427,7 +430,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
   context 'when config_drive option is set' do
     let(:options) do
       cloud_options = mock_cloud_options
-      cloud_options['properties']['openstack']['config_drive'] = 'cdrom'
+      cloud_options['properties']['huaweicloud']['config_drive'] = 'cdrom'
       cloud_options['properties']
     end
 
@@ -502,7 +505,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
       context 'when `use_nova_networking=true`' do
         let(:options) {
           mocked_options = mock_cloud_options(3)
-          mocked_options['properties']['openstack']['use_nova_networking'] = true
+          mocked_options['properties']['huaweicloud']['use_nova_networking'] = true
           mocked_options['properties']
         }
 
@@ -542,8 +545,8 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
 
     context 'with a CloudError' do
       it 'destroys the server successfully' do
-        allow(cloud.openstack).to receive(:wait_resource).with(server, :active, :state).and_raise(Bosh::Clouds::CloudError)
-        expect(cloud.openstack).to receive(:wait_resource).with(server, %i[terminated deleted], :state, true)
+        allow(cloud.huaweicloud).to receive(:wait_resource).with(server, :active, :state).and_raise(Bosh::Clouds::CloudError)
+        expect(cloud.huaweicloud).to receive(:wait_resource).with(server, %i[terminated deleted], :state, true)
 
         expect {
           cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
@@ -553,8 +556,8 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
 
     context 'with a StandardError' do
       it 'destroys the server successfully' do
-        allow(cloud.openstack).to receive(:wait_resource).with(server, :active, :state).and_raise(StandardError)
-        expect(cloud.openstack).to receive(:wait_resource).with(server, %i[terminated deleted], :state, true)
+        allow(cloud.huaweicloud).to receive(:wait_resource).with(server, :active, :state).and_raise(StandardError)
+        expect(cloud.huaweicloud).to receive(:wait_resource).with(server, %i[terminated deleted], :state, true)
 
         expect {
           cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
@@ -564,8 +567,8 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
 
     it 'raises a VMCreationFailed error and logs correct failure message when failed to destroy the server' do
       allow(server).to receive(:destroy)
-      allow(cloud.openstack).to receive(:wait_resource).with(server, :active, :state).and_raise(Bosh::Clouds::CloudError)
-      allow(cloud.openstack).to receive(:wait_resource).with(server, %i[terminated deleted], :state, true).and_raise(Bosh::Clouds::CloudError)
+      allow(cloud.huaweicloud).to receive(:wait_resource).with(server, :active, :state).and_raise(Bosh::Clouds::CloudError)
+      allow(cloud.huaweicloud).to receive(:wait_resource).with(server, %i[terminated deleted], :state, true).and_raise(Bosh::Clouds::CloudError)
 
       expect {
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
@@ -588,7 +591,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
              expect(error).to be_a(Bosh::Clouds::VMCreationFailed)
              expect(error.ok_to_retry).to eq(false)
            }
-      expect(cloud.openstack).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true)
+      expect(cloud.huaweicloud).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true)
     end
 
     it 'destroys the server successfully and raises a non-retryable Error when StandardError happens' do
@@ -600,12 +603,12 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
              expect(error).to be_a(Bosh::Clouds::VMCreationFailed)
              expect(error.ok_to_retry).to eq(false)
            }
-      expect(cloud.openstack).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true)
+      expect(cloud.huaweicloud).to have_received(:wait_resource).with(server, %i[terminated deleted], :state, true)
     end
 
     it 'logs correct failure message when failed to destroy the server' do
       allow(@registry).to receive(:update_settings).and_raise(Bosh::Clouds::CloudError)
-      allow(cloud.openstack).to receive(:wait_resource).with(server, %i[terminated deleted], :state, true).and_raise(Bosh::Clouds::CloudError)
+      allow(cloud.huaweicloud).to receive(:wait_resource).with(server, %i[terminated deleted], :state, true).and_raise(Bosh::Clouds::CloudError)
 
       expect {
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
@@ -639,7 +642,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
   context 'when use_dhcp is set to false' do
     let(:options) do
       cloud_options = mock_cloud_options
-      cloud_options['properties']['openstack']['use_dhcp'] = false
+      cloud_options['properties']['huaweicloud']['use_dhcp'] = false
       cloud_options['properties']
     end
 
@@ -672,7 +675,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     context 'when default_key_name is only defined in CPI cloud properties' do
       let(:options) do
         cloud_options_with_default_key_name = mock_cloud_options['properties']
-        cloud_options_with_default_key_name['openstack']['default_key_name'] = 'default_key_name'
+        cloud_options_with_default_key_name['huaweicloud']['default_key_name'] = 'default_key_name'
         cloud_options_with_default_key_name
       end
 
@@ -684,7 +687,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
         expected_openstack_params = huaweicloud_params
         expected_openstack_params[:key_name] = 'default_key_name'
 
-        expect_any_instance_of(Bosh::HuaweiCloud::VmFactory).to receive(:validate_key_exists).with(options['openstack']['default_key_name'])
+        expect_any_instance_of(Bosh::HuaweiCloud::VmFactory).to receive(:validate_key_exists).with(options['huaweicloud']['default_key_name'])
 
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec_no_key, { 'network_a' => dynamic_network_spec }, nil, environment)
 
@@ -695,7 +698,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     context 'when default_key_name is defined in CPI cloud properties and key_name in resource pool' do
       let(:options) do
         cloud_options_with_default_key_name = mock_cloud_options['properties']
-        cloud_options_with_default_key_name['openstack']['default_key_name'] = 'default_key_name'
+        cloud_options_with_default_key_name['huaweicloud']['default_key_name'] = 'default_key_name'
         cloud_options_with_default_key_name
       end
 
@@ -724,7 +727,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     context 'when "human_readable_vm_names" is enabled' do
       let(:options) do
         options = mock_cloud_options['properties']
-        options['openstack']['human_readable_vm_names'] = true
+        options['huaweicloud']['human_readable_vm_names'] = true
         options
       end
 
@@ -801,7 +804,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     context 'when human_readable_vm_names are enabled' do
       let(:options) do
         options = mock_cloud_options['properties']
-        options['openstack']['human_readable_vm_names'] = true
+        options['huaweicloud']['human_readable_vm_names'] = true
         options
       end
 
@@ -889,14 +892,14 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     context 'when "enable_auto_anti_affinity" is true' do
       let(:options) do
         options = mock_cloud_options['properties']
-        options['openstack']['enable_auto_anti_affinity'] = true
+        options['huaweicloud']['enable_auto_anti_affinity'] = true
         options
       end
 
       it 'creates the vm with the server group assigned' do
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
 
-        expect(Bosh::HuaweiCloud::ServerGroups).to have_received(:new).with(cloud.openstack)
+        expect(Bosh::HuaweiCloud::ServerGroups).to have_received(:new).with(cloud.huaweicloud)
         expect(server_groups).to have_received(:find_or_create).with('fake-uuid', 'fake-group')
         expect(cloud.compute.servers).to have_received(:create).with(hash_including(os_scheduler_hints: { 'group' => 'fake-server-group-id' }))
       end
@@ -914,7 +917,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
         it 'raises an cloud error' do
           expect {
             cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-          }.to raise_error(Bosh::Clouds::CloudError, "You have reached your quota for members in a server group for project '#{cloud.openstack.params[:openstack_tenant]}'. Please disable auto-anti-affinity server groups or increase your quota.")
+          }.to raise_error(Bosh::Clouds::CloudError, "You have reached your quota for members in a server group for project '#{cloud.huaweicloud.params[:openstack_tenant]}'. Please disable auto-anti-affinity server groups or increase your quota.")
         end
       end
 
@@ -947,7 +950,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     context 'when "enable_auto_anti_affinity" is false' do
       let(:options) do
         options = mock_cloud_options['properties']
-        options['openstack']['enable_auto_anti_affinity'] = false
+        options['huaweicloud']['enable_auto_anti_affinity'] = false
         options
       end
 
@@ -961,7 +964,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
   describe 'when multiple azs are configured' do
     let(:options) do
       options = mock_cloud_options['properties']
-      options['openstack']['ignore_server_availability_zone'] = true
+      options['huaweicloud']['ignore_server_availability_zone'] = true
       options
     end
 

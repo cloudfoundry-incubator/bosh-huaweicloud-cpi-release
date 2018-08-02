@@ -18,14 +18,14 @@ describe Bosh::HuaweiCloud::Cloud, 'resize_disk' do
 
   it 'uses the OpenStack endpoint to resize a disk' do
     allow(volume).to receive(:extend)
-    allow(cloud.openstack).to receive(:wait_resource).with(volume, :available)
+    allow(cloud.huaweicloud).to receive(:wait_resource).with(volume, :available)
 
     return_value = cloud.resize_disk('disk-id', 4096)
 
     expect(return_value).to eq(nil)
     expect(volume).to have_received(:extend).with(4)
     expect(Bosh::Clouds::Config.logger).to have_received(:info).with('Resizing disk-id from 2 GiB to 4 GiB')
-    expect(cloud.openstack).to have_received(:wait_resource).with(volume, :available)
+    expect(cloud.huaweicloud).to have_received(:wait_resource).with(volume, :available)
     expect(Bosh::Clouds::Config.logger).to have_received(:info).with('Disk disk-id resized from 2 GiB to 4 GiB')
   end
 
@@ -45,12 +45,12 @@ describe Bosh::HuaweiCloud::Cloud, 'resize_disk' do
     it 'does not call extend on disk and writes to the log' do
       allow(volume).to receive(:extend)
       allow(Bosh::Clouds::Config.logger).to receive(:info)
-      allow(cloud.openstack).to receive(:wait_resource).with(volume, :available)
+      allow(cloud.huaweicloud).to receive(:wait_resource).with(volume, :available)
 
       cloud.resize_disk('disk-id', 4097)
 
       expect(Bosh::Clouds::Config.logger).to have_received(:info).with('Resizing disk-id from 2 GiB to 5 GiB')
-      expect(cloud.openstack).to have_received(:wait_resource).with(volume, :available)
+      expect(cloud.huaweicloud).to have_received(:wait_resource).with(volume, :available)
       expect(volume).to have_received(:extend).with(5)
       expect(Bosh::Clouds::Config.logger).to have_received(:info).with('Disk disk-id resized from 2 GiB to 5 GiB')
     end

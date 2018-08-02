@@ -17,7 +17,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
       'network_b' => manual_network_spec(subnet_id: 'bar', ip: '10.0.0.2'),
     }
   end
-  let(:openstack) { instance_double(Bosh::HuaweiCloud::Huawei) }
+  let(:huaweicloud) { instance_double(Bosh::HuaweiCloud::Huawei) }
   let(:spec) {
     {
       'network_a' => { 'type' => 'dynamic' },
@@ -25,7 +25,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
   }
 
 
-  before { allow(openstack).to receive(:with_huaweicloud) { |&block| block.call } }
+  before { allow(huaweicloud).to receive(:with_huaweicloud) { |&block| block.call } }
 
   it 'exposes network_spec as attribute' do
     nc = Bosh::HuaweiCloud::NetworkConfigurator.new(spec)
@@ -192,33 +192,33 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
       end
 
       context 'and no port id is available in network spec' do
-        let(:openstack) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: true) }
+        let(:huaweicloud) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: true) }
         it 'should set fixed ip only' do
-          nc.prepare(openstack)
+          nc.prepare(huaweicloud)
 
           expect(nc.nics).to eq([{ 'subnet_id' => 'net', 'v4_fixed_ip' => '10.0.0.1' }])
         end
       end
 
       context 'and port id is available in network spec' do
-        let(:openstack) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: false) }
+        let(:huaweicloud) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: false) }
         before(:each) do
           allow_any_instance_of(Bosh::HuaweiCloud::ManualNetwork).to receive(:nic).and_return('subnet_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8')
           allow_any_instance_of(Bosh::HuaweiCloud::ManualNetwork).to receive(:prepare)
         end
 
         it 'should set port id only' do
-          nc.prepare(openstack)
+          nc.prepare(huaweicloud)
 
           expect(nc.nics).to eq([{ 'subnet_id' => 'net', 'port_id' => '117717c1-81cb-4ac4-96ab-99aaf1be9ca8' }])
         end
       end
 
       context 'when multiple networks' do
-        let(:openstack) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: true) }
+        let(:huaweicloud) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: true) }
         it 'should extract subnet_id and IP address from all' do
           nc = Bosh::HuaweiCloud::NetworkConfigurator.new(several_manual_networks)
-          nc.prepare(openstack)
+          nc.prepare(huaweicloud)
 
           expect(nc.nics).to eq([
                                   { 'subnet_id' => 'net', 'v4_fixed_ip' => '10.0.0.1' },
@@ -230,7 +230,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
   end
 
   describe '#prepare' do
-    let(:openstack) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: true) }
+    let(:huaweicloud) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: true) }
     let(:networks) { [] }
 
     before(:each) do
@@ -250,7 +250,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
         'network_c' => dynamic_network_spec,
       )
 
-      nc.prepare(openstack)
+      nc.prepare(huaweicloud)
 
       networks.each do |network|
         expect(network).to have_received(:prepare).with(anything, anything)
@@ -266,14 +266,14 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
     it 'picks a group and logs  it' do
       allow(Bosh::HuaweiCloud::SecurityGroups).to receive(:select_and_retrieve).and_return(security_groups)
       nc = Bosh::HuaweiCloud::NetworkConfigurator.new(spec)
-      nc.pick_groups(openstack, default_security_groups, resource_pool_groups)
-      expect(Bosh::HuaweiCloud::SecurityGroups).to have_received(:select_and_retrieve).with(openstack, default_security_groups, [], resource_pool_groups)
+      nc.pick_groups(huaweicloud, default_security_groups, resource_pool_groups)
+      expect(Bosh::HuaweiCloud::SecurityGroups).to have_received(:select_and_retrieve).with(huaweicloud, default_security_groups, [], resource_pool_groups)
       expect(Bosh::Clouds::Config.logger).to have_received(:debug).with("Using security groups: `group'")
     end
   end
 
   describe '#cleanup' do
-    let(:openstack) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: true) }
+    let(:huaweicloud) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: true) }
     let(:networks) { [] }
 
     before(:each) do
@@ -293,7 +293,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
         'network_c' => dynamic_network_spec,
       )
 
-      nc.cleanup(openstack)
+      nc.cleanup(huaweicloud)
 
       networks.each do |network|
         expect(network).to have_received(:cleanup)
@@ -361,28 +361,28 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
     let(:neutron) { double(Fog::Network) }
 
     context 'when neutron is available' do
-      let(:openstack) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: false) }
+      let(:huaweicloud) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: false) }
 
       it 'should return all device ports' do
         port = double('port', id: 'port_id')
         ports = double('ports', all: [])
-        allow(openstack).to receive(:network).and_return(neutron)
+        allow(huaweicloud).to receive(:network).and_return(neutron)
         allow(neutron).to receive(:ports).and_return(ports)
         allow(ports).to receive(:all).with(device_id: 'server_id').and_return([port])
 
-        expect(Bosh::HuaweiCloud::NetworkConfigurator.port_ids(openstack, 'server_id')).to eq(['port_id'])
+        expect(Bosh::HuaweiCloud::NetworkConfigurator.port_ids(huaweicloud, 'server_id')).to eq(['port_id'])
       end
     end
 
     context 'when neutron returns error or is not available' do
-      let(:openstack) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: true) }
+      let(:huaweicloud) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: true) }
 
       it 'should return no ports' do
-        allow(openstack).to receive(:network)
+        allow(huaweicloud).to receive(:network)
 
-        expect(Bosh::HuaweiCloud::NetworkConfigurator.port_ids(openstack, 'server_id')).to eq([])
+        expect(Bosh::HuaweiCloud::NetworkConfigurator.port_ids(huaweicloud, 'server_id')).to eq([])
 
-        expect(openstack).to_not have_received(:network)
+        expect(huaweicloud).to_not have_received(:network)
       end
     end
   end
@@ -393,42 +393,42 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
     let(:port_b) { double('port_b', id: 'port_b_id') }
 
     context 'when neutron is available' do
-      let(:openstack) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: false) }
+      let(:huaweicloud) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: false) }
       it 'should delete all ports' do
         ports = double('ports')
-        allow(openstack).to receive(:network).and_return(neutron).exactly(2).times
+        allow(huaweicloud).to receive(:network).and_return(neutron).exactly(2).times
         allow(neutron).to receive(:ports).and_return(ports).exactly(2).times
         allow(ports).to receive(:get).with('port_a_id').and_return(port_a)
         allow(ports).to receive(:get).with('port_b_id').and_return(port_b)
         allow(port_a).to receive(:destroy)
         allow(port_b).to receive(:destroy)
 
-        expect(Bosh::HuaweiCloud::NetworkConfigurator.cleanup_ports(openstack, %w[port_a_id port_b_id]))
+        expect(Bosh::HuaweiCloud::NetworkConfigurator.cleanup_ports(huaweicloud, %w[port_a_id port_b_id]))
       end
 
       it 'should not fail on already deleted ports' do
         ports = double('ports')
-        allow(openstack).to receive(:network).and_return(neutron).exactly(2).times
+        allow(huaweicloud).to receive(:network).and_return(neutron).exactly(2).times
         allow(neutron).to receive(:ports).and_return(ports).exactly(2).times
         allow(ports).to receive(:get).with('port_a_id').and_return(nil)
         allow(ports).to receive(:get).with('port_b_id').and_return(nil)
 
         expect {
-          Bosh::HuaweiCloud::NetworkConfigurator.cleanup_ports(openstack, %w[port_a_id port_b_id])
+          Bosh::HuaweiCloud::NetworkConfigurator.cleanup_ports(huaweicloud, %w[port_a_id port_b_id])
         }.to_not raise_error
       end
     end
 
     context 'when neutron is not available' do
-      let(:openstack) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: true) }
+      let(:huaweicloud) { instance_double(Bosh::HuaweiCloud::Huawei, use_nova_networking?: true) }
       it 'should not raise any error' do
-        allow(openstack).to receive(:network)
+        allow(huaweicloud).to receive(:network)
 
         expect {
-          Bosh::HuaweiCloud::NetworkConfigurator.cleanup_ports(openstack, [port_a, port_b])
+          Bosh::HuaweiCloud::NetworkConfigurator.cleanup_ports(huaweicloud, [port_a, port_b])
         }.to_not raise_error
 
-        expect(openstack).to_not have_received(:network)
+        expect(huaweicloud).to_not have_received(:network)
       end
     end
   end
@@ -474,7 +474,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
       }
 
       it 'returns the IP address from the gateway network' do
-        expect(Bosh::HuaweiCloud::NetworkConfigurator.gateway_ip(network_spec, openstack, server)).to eq('10.10.10.10')
+        expect(Bosh::HuaweiCloud::NetworkConfigurator.gateway_ip(network_spec, huaweicloud, server)).to eq('10.10.10.10')
       end
 
       context 'when other private networks exist' do
@@ -488,7 +488,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
         }
 
         it 'returns the IP address from the gateway network' do
-          expect(Bosh::HuaweiCloud::NetworkConfigurator.gateway_ip(network_spec, openstack, server)).to eq('10.10.10.10')
+          expect(Bosh::HuaweiCloud::NetworkConfigurator.gateway_ip(network_spec, huaweicloud, server)).to eq('10.10.10.10')
         end
       end
     end
@@ -506,7 +506,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
       end
 
       it 'returns the IP address from the gateway network by calling OpenStack' do
-        expect(Bosh::HuaweiCloud::NetworkConfigurator.gateway_ip(network_spec, openstack, server)).to eq('10.20.20.20')
+        expect(Bosh::HuaweiCloud::NetworkConfigurator.gateway_ip(network_spec, huaweicloud, server)).to eq('10.20.20.20')
         expect(server).to have_received(:addresses)
       end
 
@@ -521,7 +521,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
 
         it 'raises an error' do
           expect {
-            Bosh::HuaweiCloud::NetworkConfigurator.gateway_ip(network_spec, openstack, server)
+            Bosh::HuaweiCloud::NetworkConfigurator.gateway_ip(network_spec, huaweicloud, server)
           }.to raise_error(Bosh::Clouds::VMCreationFailed, 'Gateway IP address could not be determined. Gateway network is dynamic, but additional private networks exist.')
         end
       end
@@ -533,7 +533,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
     let(:list_subnets_response) { double('list_subnets', body: { 'subnets' => subnets }) }
 
     before(:each) do
-      allow(openstack).to receive(:network).and_return(neutron)
+      allow(huaweicloud).to receive(:network).and_return(neutron)
       allow(neutron).to receive(:list_subnets).and_return(list_subnets_response)
     end
 
@@ -542,7 +542,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
       let(:subnets) { [] }
 
       it 'returns an empty list' do
-        subnet_ids = Bosh::HuaweiCloud::NetworkConfigurator.matching_gateway_subnet_ids_for_ip(network_spec, openstack, '10.0.0.4')
+        subnet_ids = Bosh::HuaweiCloud::NetworkConfigurator.matching_gateway_subnet_ids_for_ip(network_spec, huaweicloud, '10.0.0.4')
 
         expect(subnet_ids.empty?).to be_truthy
       end
@@ -553,7 +553,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
       let(:subnets) { [{ 'id' => 'subnet_id', 'cidr' => '10.0.0.0/24' }] }
 
       it 'returns the gateway sub-network id' do
-        subnet_ids = Bosh::HuaweiCloud::NetworkConfigurator.matching_gateway_subnet_ids_for_ip(network_spec, openstack, '10.0.0.2')
+        subnet_ids = Bosh::HuaweiCloud::NetworkConfigurator.matching_gateway_subnet_ids_for_ip(network_spec, huaweicloud, '10.0.0.2')
 
         expect(subnet_ids).to eq(['subnet_id'])
       end
@@ -567,7 +567,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
       }
       let(:subnets) { [{ 'id' => 'subnet_id', 'cidr' => '10.0.0.0/24' }, { 'id' => 'second_subnet_id', 'cidr' => '20.20.20.0/24' }] }
       it 'returns the sub-network id that matches the ip' do
-        subnet_ids = Bosh::HuaweiCloud::NetworkConfigurator.matching_gateway_subnet_ids_for_ip(network_spec, openstack, '20.20.20.2')
+        subnet_ids = Bosh::HuaweiCloud::NetworkConfigurator.matching_gateway_subnet_ids_for_ip(network_spec, huaweicloud, '20.20.20.2')
 
         expect(subnet_ids).to eq(['second_subnet_id'])
       end
@@ -576,7 +576,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
         let(:subnets) { [{ 'id' => 'subnet_id', 'cidr' => '10.0.0.0/16' }, { 'id' => 'second_subnet_id', 'cidr' => '10.0.0.0/24' }] }
 
         it 'returns a list of matching subnets' do
-          subnet_ids = Bosh::HuaweiCloud::NetworkConfigurator.matching_gateway_subnet_ids_for_ip(network_spec, openstack, '10.0.0.4')
+          subnet_ids = Bosh::HuaweiCloud::NetworkConfigurator.matching_gateway_subnet_ids_for_ip(network_spec, huaweicloud, '10.0.0.4')
 
           expect(subnet_ids).to eq(%w[subnet_id second_subnet_id])
         end
