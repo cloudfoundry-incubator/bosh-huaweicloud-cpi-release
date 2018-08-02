@@ -1,18 +1,18 @@
 <%=
   params = {
     'cloud' => {
-      'plugin' => 'openstack',
+      'plugin' => 'huaweicloud',
       'properties' => {
-        'openstack' => {
-          'auth_url' => p('openstack.auth_url'),
-          'username' => p('openstack.username'),
-          'api_key' => p('openstack.api_key'),
-          'default_key_name' => p('openstack.default_key_name'),
-          'default_security_groups' => p('openstack.default_security_groups'),
-          'default_volume_type' => p('openstack.default_volume_type', nil),
-          'wait_resource_poll_interval' => p('openstack.wait_resource_poll_interval'),
-          'ignore_server_availability_zone' => p('openstack.ignore_server_availability_zone'),
-          'use_nova_networking' => p('openstack.use_nova_networking')
+        'huaweicloud' => {
+          'auth_url' => p('huaweicloud.auth_url'),
+          'username' => p('huaweicloud.username'),
+          'api_key' => p('huaweicloud.api_key'),
+          'default_key_name' => p('huaweicloud.default_key_name'),
+          'default_security_groups' => p('huaweicloud.default_security_groups'),
+          'default_volume_type' => p('huaweicloud.default_volume_type', nil),
+          'wait_resource_poll_interval' => p('huaweicloud.wait_resource_poll_interval'),
+          'ignore_server_availability_zone' => p('huaweicloud.ignore_server_availability_zone'),
+          'use_nova_networking' => p('huaweicloud.use_nova_networking')
         },
         'registry' => {
           'user' => p('registry.username'),
@@ -26,26 +26,26 @@
     }
   }
 
-  openstack_params = params['cloud']['properties']['openstack']
-  if_p('openstack.region')                     { |value| openstack_params['region'] = value }
-  if_p('openstack.endpoint_type')              { |value| openstack_params['endpoint_type'] = value }
-  if_p('openstack.state_timeout')              { |value| openstack_params['state_timeout'] = value }
-  if_p('openstack.stemcell_public_visibility') { |value| openstack_params['stemcell_public_visibility'] = value }
-  if_p('openstack.connection_options')         { |value| openstack_params['connection_options'] = value }
-  if_p('openstack.boot_from_volume')           { |value| openstack_params['boot_from_volume'] = value }
-  if_p('openstack.config_drive')               { |value| openstack_params['config_drive'] = value }
-  if_p('openstack.use_dhcp')                   { |value| openstack_params['use_dhcp'] = value }
-  if_p('openstack.domain')                     { |value| openstack_params['domain'] = value }
-  if_p('openstack.project')                    { |value| openstack_params['project'] = value }
-  if_p('openstack.tenant')                     { |value| openstack_params['tenant'] = value }
-  if_p('openstack.human_readable_vm_names')    { |value| openstack_params['human_readable_vm_names'] = value }
-  if_p('openstack.enable_auto_anti_affinity')  { |value| openstack_params['enable_auto_anti_affinity'] = value }
+  huaweicloud_params = params['cloud']['properties']['huaweicloud']
+  if_p('huaweicloud.region')                     { |value| huaweicloud_params['region'] = value }
+  if_p('huaweicloud.endpoint_type')              { |value| huaweicloud_params['endpoint_type'] = value }
+  if_p('huaweicloud.state_timeout')              { |value| huaweicloud_params['state_timeout'] = value }
+  if_p('huaweicloud.stemcell_public_visibility') { |value| huaweicloud_params['stemcell_public_visibility'] = value }
+  if_p('huaweicloud.connection_options')         { |value| huaweicloud_params['connection_options'] = value }
+  if_p('huaweicloud.boot_from_volume')           { |value| huaweicloud_params['boot_from_volume'] = value }
+  if_p('huaweicloud.config_drive')               { |value| huaweicloud_params['config_drive'] = value }
+  if_p('huaweicloud.use_dhcp')                   { |value| huaweicloud_params['use_dhcp'] = value }
+  if_p('huaweicloud.domain')                     { |value| huaweicloud_params['domain'] = value }
+  if_p('huaweicloud.project')                    { |value| huaweicloud_params['project'] = value }
+  if_p('huaweicloud.tenant')                     { |value| huaweicloud_params['tenant'] = value }
+  if_p('huaweicloud.human_readable_vm_names')    { |value| huaweicloud_params['human_readable_vm_names'] = value }
+  if_p('huaweicloud.enable_auto_anti_affinity')  { |value| huaweicloud_params['enable_auto_anti_affinity'] = value }
 
   if_p('registry.endpoint') do |endpoint|
     params['cloud']['properties']['registry']['endpoint'] = endpoint
   end.else do
     # 'registry.host==127.0.0.1' && registry.port==6901 is a special bosh-init case. Don't raise exception in this case.
-    if p('openstack.human_readable_vm_names') == true && p('registry.host') != '127.0.0.1' && p('registry.port') != 6901
+    if p('huaweicloud.human_readable_vm_names') == true && p('registry.host') != '127.0.0.1' && p('registry.port') != 6901
       raise "Property 'human_readable_vm_names' can only be used together with 'registry.endpoint'. " +
             "Please refer to http://bosh.io/docs/openstack-registry.html."
     else

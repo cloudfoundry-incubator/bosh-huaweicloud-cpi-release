@@ -4,7 +4,7 @@ module Bosh::HuaweiCloud
   class Cloud < Bosh::Cloud
     include Helpers
 
-    OPTION_KEYS = %w[openstack registry agent use_dhcp].freeze
+    OPTION_KEYS = %w[huaweicloud registry agent use_dhcp].freeze
 
     BOSH_APP_DIR = '/var/vcap/bosh'.freeze
     FIRST_DEVICE_NAME_LETTER = 'b'.freeze
@@ -31,7 +31,7 @@ module Bosh::HuaweiCloud
       @logger = Bosh::Clouds::Config.logger
 
       @agent_properties = @options.fetch('agent', {})
-      openstack_properties = @options['openstack']
+      openstack_properties = @options['huaweicloud']
       @default_key_name = openstack_properties['default_key_name']
       @default_security_groups = openstack_properties['default_security_groups']
       @default_volume_type = openstack_properties['default_volume_type']
@@ -43,7 +43,7 @@ module Bosh::HuaweiCloud
       @use_config_drive = !!openstack_properties.fetch('config_drive', false)
       @config_drive = openstack_properties['config_drive']
 
-      @openstack = Bosh::HuaweiCloud::Huawei.new(@options['openstack'])
+      @openstack = Bosh::HuaweiCloud::Huawei.new(@options['huaweicloud'])
 
       @az_provider = Bosh::HuaweiCloud::AvailabilityZoneProvider.new(
         @openstack,
@@ -499,7 +499,7 @@ module Bosh::HuaweiCloud
     end
 
     def is_v3
-      @options['openstack']['auth_url'].match(/\/v3(?=\/|$)/)
+      @options['huaweicloud']['auth_url'].match(/\/v3(?=\/|$)/)
     end
 
     ##
@@ -699,11 +699,11 @@ module Bosh::HuaweiCloud
     # @return [void]
     # @raise [ArgumentError] if options are not valid
     def validate_options
-      raise ArgumentError, "Invalid OpenStack cloud properties: No 'openstack' properties specified." unless @options['openstack']
-      auth_url = @options['openstack']['auth_url']
+      raise ArgumentError, "Invalid OpenStack cloud properties: No 'huaweicloud' properties specified #{@options}." unless @options['huaweicloud']
+      auth_url = @options['huaweicloud']['auth_url']
       schema = Membrane::SchemaParser.parse do
         openstack_options_schema = {
-          'openstack' => {
+          'huaweicloud' => {
             'auth_url' => String,
             'username' => String,
             'api_key' => String,
@@ -730,11 +730,11 @@ module Bosh::HuaweiCloud
           optional('agent') => Hash,
         }
         if Bosh::HuaweiCloud::Huawei.is_v3(auth_url)
-          openstack_options_schema['openstack']['project'] = String
-          openstack_options_schema['openstack']['domain'] = String
+          openstack_options_schema['huaweicloud']['project'] = String
+          openstack_options_schema['huaweicloud']['domain'] = String
         else
-          openstack_options_schema['openstack']['tenant'] = String
-          openstack_options_schema['openstack'][optional('domain')] = String
+          openstack_options_schema['huaweicloud']['tenant'] = String
+          openstack_options_schema['huaweicloud'][optional('domain')] = String
         end
         openstack_options_schema
       end
