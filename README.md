@@ -11,7 +11,7 @@ and added some enhancements to interact with the many resources supported by Hua
 
 ## Enhancements
 
-- **VPC**: Virtual Private Cloud
+- **network**: supporting huaweicloud subnet and vpc
 
 Maintainers
 -----------
