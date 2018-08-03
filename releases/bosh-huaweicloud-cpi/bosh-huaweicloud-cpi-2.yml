@@ -1,0 +1,25 @@
+name: bosh-huaweicloud-cpi
+version: "2"
+commit_hash: 9eeded8
+uncommitted_changes: false
+jobs:
+- name: huaweicloud_cpi
+  version: 6d6365fd0971fb32403ca7184d863636138bcfbc
+  fingerprint: 6d6365fd0971fb32403ca7184d863636138bcfbc
+  sha1: 9a15a2839fc51d175d39e90e9b23f69f157f2ab3
+packages:
+- name: bosh_huaweicloud_cpi
+  version: a6009ecc943c46da06079c043988f8c71ed36c72
+  fingerprint: a6009ecc943c46da06079c043988f8c71ed36c72
+  sha1: 12596f1450f58a0735a23736d6a16b8b73a4d25a
+  dependencies:
+  - ruby_huaweicloud_cpi
+- name: ruby_huaweicloud_cpi
+  version: bf5da2d8c709bc8a074ac44deeb627a45524cc15
+  fingerprint: bf5da2d8c709bc8a074ac44deeb627a45524cc15
+  sha1: d26f612ad70da05bffbab32c044a121d48e6b418
+  dependencies: []
+license:
+  version: e6c4ccc65c76e75e2338d1edabdcf264d37ee663
+  fingerprint: e6c4ccc65c76e75e2338d1edabdcf264d37ee663
+  sha1: 933d7dda8fd9b1838fdf168388160c95e3197c65
