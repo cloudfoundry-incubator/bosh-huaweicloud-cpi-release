@@ -38,20 +38,18 @@ $ bosh create-release --force --tarball=../bosh-huaweicloud-cpi.tgz
 
 ## Usage
 
-### Prepare your `Alibaba Cloud` environment
+### Prepare your `Huawei Cloud` environment
 
-- Create a vpc with switch and get `vswtich_id`
-- Create security group get `security_group_id`
-- Create user access key, get `access_key_id/access_key_secret`
+- Create a vpc with switch and get `subnet_id`
+- Create security group get `security_group_name`
 - Create a key pair, get `key_pair_name` and download it private key, like bosh.pem
-- Create a jumpbox vm
 
-### Install bosh in Alibaba Cloud
+### Install bosh in Huawei Cloud
 
 - Clone [bosh-deployment](https://github.com/zhongjun2/bosh-deployment) repo from github
 
 ```
-$ git clone https://github.com/aliyun/bosh-deployment.git
+$ git clone https://github.com/zhongjun2/bosh-deployment.git
 $ cd bosh-deployment
 ```
 
