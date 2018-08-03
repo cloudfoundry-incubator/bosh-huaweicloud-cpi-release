@@ -19,14 +19,14 @@ describe Bosh::HuaweiCloud::Cloud do
       end
 
       allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-      allow(cloud.openstack).to receive(:wait_resource).with(volume, :available)
+      allow(cloud.huaweicloud).to receive(:wait_resource).with(volume, :available)
 
       expect(Fog::Volume::HuaweiCloud::V2).to receive(:new)
       expect(cloud.create_disk(2048, {})).to eq('v-foobar')
     end
   end
 
-  it 'creates an OpenStack volume' do
+  it 'creates an HuaweiCloud volume' do
     unique_name = SecureRandom.uuid
     disk_params = {
       display_name: "volume-#{unique_name}",
@@ -43,7 +43,7 @@ describe Bosh::HuaweiCloud::Cloud do
     end
 
     allow(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    allow(cloud.openstack).to receive(:wait_resource).with(volume, :available)
+    allow(cloud.huaweicloud).to receive(:wait_resource).with(volume, :available)
 
     expect(cloud.create_disk(2048, {})).to eq('v-foobar')
   end
@@ -66,7 +66,7 @@ describe Bosh::HuaweiCloud::Cloud do
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    expect(cloud.openstack).to receive(:wait_resource).with(volume, :available)
+    expect(cloud.huaweicloud).to receive(:wait_resource).with(volume, :available)
 
     expect(cloud.create_disk(2048, 'type' => 'foo')).to eq('v-foobar')
   end
@@ -84,14 +84,14 @@ describe Bosh::HuaweiCloud::Cloud do
     volume = double('volume', id: 'v-foobar')
 
     global_properties = mock_cloud_options['properties']
-    global_properties['openstack']['default_volume_type'] = 'default-type'
+    global_properties['huaweicloud']['default_volume_type'] = 'default-type'
     cloud = mock_cloud(global_properties) do |fog|
       expect(fog.volume.volumes).to receive(:create)
         .with(disk_params).and_return(volume)
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    expect(cloud.openstack).to receive(:wait_resource).with(volume, :available)
+    expect(cloud.huaweicloud).to receive(:wait_resource).with(volume, :available)
 
     expect(cloud.create_disk(2048, {})).to eq('v-foobar')
   end
@@ -113,7 +113,7 @@ describe Bosh::HuaweiCloud::Cloud do
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    expect(cloud.openstack).to receive(:wait_resource).with(volume, :available)
+    expect(cloud.huaweicloud).to receive(:wait_resource).with(volume, :available)
 
     cloud.create_disk(2049, {})
   end
@@ -146,7 +146,7 @@ describe Bosh::HuaweiCloud::Cloud do
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    expect(cloud.openstack).to receive(:wait_resource).with(volume, :available)
+    expect(cloud.huaweicloud).to receive(:wait_resource).with(volume, :available)
 
     cloud.create_disk(1024, {}, 'i-test')
   end
@@ -165,7 +165,7 @@ describe Bosh::HuaweiCloud::Cloud do
     volume = double('volume', id: 'v-foobar')
 
     cloud_options = mock_cloud_options
-    cloud_options['properties']['openstack']['ignore_server_availability_zone'] = true
+    cloud_options['properties']['huaweicloud']['ignore_server_availability_zone'] = true
 
     cloud = mock_cloud(cloud_options['properties']) do |fog|
       expect(fog.volume.volumes).to receive(:create)
@@ -173,7 +173,7 @@ describe Bosh::HuaweiCloud::Cloud do
     end
 
     expect(cloud).to receive(:generate_unique_name).and_return(unique_name)
-    expect(cloud.openstack).to receive(:wait_resource).with(volume, :available)
+    expect(cloud.huaweicloud).to receive(:wait_resource).with(volume, :available)
 
     cloud.create_disk(1024, {}, 'i-test')
   end

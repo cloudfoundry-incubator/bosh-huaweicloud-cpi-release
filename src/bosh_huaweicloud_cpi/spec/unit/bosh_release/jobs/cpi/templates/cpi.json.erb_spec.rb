@@ -18,16 +18,16 @@ describe 'cpi.json.erb' do
   let(:manifest) do
     {
       'properties' => {
-        'openstack' => {
-          'auth_url' => 'openstack.auth_url',
-          'username' => 'openstack.username',
-          'api_key' => 'openstack.api_key',
-          'tenant' => 'openstack.tenant',
-          'default_key_name' => 'openstack.default_key_name',
-          'default_security_groups' => 'openstack.default_security_groups',
-          'wait_resource_poll_interval' => 'openstack.wait_resource_poll_interval',
+        'huaweicloud' => {
+          'auth_url' => 'huaweicloud.auth_url',
+          'username' => 'huaweicloud.username',
+          'api_key' => 'huaweicloud.api_key',
+          'tenant' => 'huaweicloud.tenant',
+          'default_key_name' => 'huaweicloud.default_key_name',
+          'default_security_groups' => 'huaweicloud.default_security_groups',
+          'wait_resource_poll_interval' => 'huaweicloud.wait_resource_poll_interval',
           'human_readable_vm_names' => false,
-          'ignore_server_availability_zone' => 'openstack.ignore_server_availability_zone',
+          'ignore_server_availability_zone' => 'huaweicloud.ignore_server_availability_zone',
         },
         'blobstore' => {
           'provider' => 'local',
@@ -50,7 +50,7 @@ describe 'cpi.json.erb' do
   it 'is able to render the erb given most basic manifest properties' do
     expect(subject).to eq(
       'cloud' => {
-        'plugin' => 'openstack',
+        'plugin' => 'huaweicloud',
         'properties' => {
           'agent' => {
             'blobstore' => {
@@ -62,20 +62,20 @@ describe 'cpi.json.erb' do
             'mbus' => 'nats://nats-user:nats-password@nats_address.example.com:4222',
             'ntp' => [],
           },
-          'openstack' => {
-            'api_key' => 'openstack.api_key',
-            'auth_url' => 'openstack.auth_url',
+          'huaweicloud' => {
+            'api_key' => 'huaweicloud.api_key',
+            'auth_url' => 'huaweicloud.auth_url',
             'boot_from_volume' => false,
-            'default_key_name' => 'openstack.default_key_name',
-            'default_security_groups' => 'openstack.default_security_groups',
+            'default_key_name' => 'huaweicloud.default_key_name',
+            'default_security_groups' => 'huaweicloud.default_security_groups',
             'endpoint_type' => 'publicURL',
-            'ignore_server_availability_zone' => 'openstack.ignore_server_availability_zone',
+            'ignore_server_availability_zone' => 'huaweicloud.ignore_server_availability_zone',
             'state_timeout' => 300,
             'stemcell_public_visibility' => false,
-            'tenant' => 'openstack.tenant',
+            'tenant' => 'huaweicloud.tenant',
             'use_dhcp' => true,
-            'username' => 'openstack.username',
-            'wait_resource_poll_interval' => 'openstack.wait_resource_poll_interval',
+            'username' => 'huaweicloud.username',
+            'wait_resource_poll_interval' => 'huaweicloud.wait_resource_poll_interval',
             'human_readable_vm_names' => false,
             'use_nova_networking' => false,
             'default_volume_type' => nil,
@@ -193,7 +193,7 @@ describe 'cpi.json.erb' do
   context 'when using human readable VM names' do
     it 'template render fails if registry endpoint is not set' do
       manifest['properties']['registry']['endpoint'] = nil
-      manifest['properties']['openstack']['human_readable_vm_names'] = true
+      manifest['properties']['huaweicloud']['human_readable_vm_names'] = true
 
       expect { subject }.to raise_error RuntimeError,
                                         "Property 'human_readable_vm_names' can only be used together with" \
@@ -202,20 +202,20 @@ describe 'cpi.json.erb' do
 
     it 'template render succeeds if registry endpoint is set' do
       manifest['properties']['registry']['endpoint'] = 'http://registry.host:25777'
-      manifest['properties']['openstack']['human_readable_vm_names'] = true
+      manifest['properties']['huaweicloud']['human_readable_vm_names'] = true
 
       expect(subject['cloud']['properties']['registry']['endpoint']).to eq('http://registry.host:25777')
-      expect(subject['cloud']['properties']['openstack']['human_readable_vm_names']).to be true
+      expect(subject['cloud']['properties']['huaweicloud']['human_readable_vm_names']).to be true
     end
 
     it 'template render succeeds if registry configured for bosh-init' do
       manifest['properties']['registry']['endpoint'] = nil
       manifest['properties']['registry']['host'] = '127.0.0.1'
       manifest['properties']['registry']['port'] = 6901
-      manifest['properties']['openstack']['human_readable_vm_names'] = true
+      manifest['properties']['huaweicloud']['human_readable_vm_names'] = true
 
       expect(subject['cloud']['properties']['registry']['endpoint']).to eq('http://127.0.0.1:6901')
-      expect(subject['cloud']['properties']['openstack']['human_readable_vm_names']).to be true
+      expect(subject['cloud']['properties']['huaweicloud']['human_readable_vm_names']).to be true
     end
   end
 end

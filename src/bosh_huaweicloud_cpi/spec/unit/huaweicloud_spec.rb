@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 describe Bosh::HuaweiCloud::Huawei do
-  let(:openstack_options_v2) { mock_cloud_options['properties']['openstack'] }
-  let(:openstack_options_v3) { mock_cloud_options(3)['properties']['openstack'] }
+  let(:openstack_options_v2) { mock_cloud_options['properties']['huaweicloud'] }
+  let(:openstack_options_v3) { mock_cloud_options(3)['properties']['huaweicloud'] }
   let(:openstack_options) { openstack_options_v2 }
   subject(:subject) { Bosh::HuaweiCloud::Huawei.new(openstack_options) }
 

@@ -19,7 +19,7 @@ describe Bosh::HuaweiCloud::Cloud do
   let(:human_readable_vm_names) { false }
   let(:use_nova_networking) { false }
   let(:enable_auto_anti_affinity) { false }
-  let(:openstack) { @config.create_openstack }
+  let(:openstack) { @config.create_huaweicloud }
 
   subject(:cpi) do
     @config.create_cpi(boot_from_volume: boot_from_volume, config_drive: config_drive, human_readable_vm_names: human_readable_vm_names, use_nova_networking: use_nova_networking, use_dhcp: use_dhcp, enable_auto_anti_affinity: enable_auto_anti_affinity)

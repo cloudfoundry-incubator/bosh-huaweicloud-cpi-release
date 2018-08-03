@@ -35,7 +35,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
     expect(snapshot).to receive(:save)
 
-    expect(cloud.openstack).to receive(:wait_resource).with(snapshot, :available)
+    expect(cloud.huaweicloud).to receive(:wait_resource).with(snapshot, :available)
 
     expect(cloud.snapshot_disk('v-foobar', metadata)).to eq('snap-foobar')
   end
@@ -73,7 +73,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
       expect(snapshot).to receive(:save)
 
-      expect(cloud.openstack).to receive(:wait_resource).with(snapshot, :available)
+      expect(cloud.huaweicloud).to receive(:wait_resource).with(snapshot, :available)
 
       expect(cloud.snapshot_disk('v-foobar', metadata)).to eq('snap-foobar')
     end
@@ -112,7 +112,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
     expect(snapshot).to receive(:save)
 
-    expect(cloud.openstack).to receive(:wait_resource).with(snapshot, :available)
+    expect(cloud.huaweicloud).to receive(:wait_resource).with(snapshot, :available)
 
     expect(cloud.snapshot_disk('v-foobar', metadata)).to eq('snap-foobar')
   end
@@ -134,7 +134,7 @@ describe Bosh::HuaweiCloud::Cloud do
       allow(fog.volume.volumes).to receive(:get).and_return(volume)
       allow(fog.volume.snapshots).to receive(:new).and_return(snapshot)
     end
-    allow(cloud.openstack).to receive(:wait_resource)
+    allow(cloud.huaweicloud).to receive(:wait_resource)
 
     metadata = {
       'deployment' => 'deployment',
@@ -168,7 +168,7 @@ describe Bosh::HuaweiCloud::Cloud do
       allow(fog.volume.volumes).to receive(:get).and_return(volume)
       allow(fog.volume.snapshots).to receive(:new).and_return(snapshot)
     end
-    allow(cloud.openstack).to receive(:wait_resource)
+    allow(cloud.huaweicloud).to receive(:wait_resource)
 
     metadata = {
       'deployment' => 'deployment',

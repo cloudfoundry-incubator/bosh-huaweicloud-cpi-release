@@ -11,7 +11,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
       before do
         Timecop.freeze
         allow(network).to receive(openstack_method_name, &raise_times(2))
-        allow(openstack).to receive(:state_timeout).and_return(state_timeout)
+        allow(huaweicloud).to receive(:state_timeout).and_return(state_timeout)
       end
 
       after do
@@ -20,7 +20,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
 
       it 'attempts to change resource again after load balancer has become active again' do
         expect(network).to receive(openstack_method_name).exactly(3)
-        expect(openstack).to receive(:wait_resource).exactly(4)
+        expect(huaweicloud).to receive(:wait_resource).exactly(4)
 
         action.call
       end
@@ -45,7 +45,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
         before do
           allow(network).to receive(openstack_method_name, &raise_times(expected_retries))
           Timecop.freeze(start_time)
-          allow(openstack).to receive(:wait_resource) do
+          allow(huaweicloud).to receive(:wait_resource) do
             Timecop.freeze(Time.now + time_increment)
           end
         end
@@ -56,7 +56,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
           }.to raise_error Bosh::Clouds::CloudError, /Reason: Bosh::Clouds::CloudError Failed after #{expected_retries}.0s with #{expected_retries} attempts with 'omg pending_update'/
 
           expect(network).to have_received(openstack_method_name).exactly(expected_retries)
-          expect(openstack).to have_received(:wait_resource).exactly(expected_retries)
+          expect(huaweicloud).to have_received(:wait_resource).exactly(expected_retries)
         end
       end
 
@@ -71,11 +71,11 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
     end
   end
 
-  subject(:subject) { Bosh::HuaweiCloud::LoadbalancerConfigurator.new(openstack, logger) }
+  subject(:subject) { Bosh::HuaweiCloud::LoadbalancerConfigurator.new(huaweicloud, logger) }
   let(:logger) { instance_double(Logger, debug: nil) }
   let(:network_spec) { {} }
   let(:options) { { 'auth_url' => '' } }
-  let(:openstack) { Bosh::HuaweiCloud::Huawei.new(options) }
+  let(:huaweicloud) { Bosh::HuaweiCloud::Huawei.new(options) }
   let(:network) { double('network', list_lbaas_pools: loadbalancer_pools_response, get_lbaas_listener: lb_listener, get_lbaas_pool: lb_pool) }
   let(:lb_listener) { double('lb_listener', body: { 'listener' => { 'loadbalancers' => [{ 'id' => 'loadbalancer-id' }] } }) }
   let(:lb_pool) { double('lb_pool', body: { 'pool' => { 'loadbalancers' => [{ 'id' => 'loadbalancer-id' }] } }) }
@@ -96,8 +96,8 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
   }
 
   before(:each) do
-    allow(openstack).to receive(:network).and_return(network)
-    allow(openstack).to receive(:wait_resource)
+    allow(huaweicloud).to receive(:network).and_return(network)
+    allow(huaweicloud).to receive(:wait_resource)
   end
 
   describe '#create_pool_memberships' do
@@ -158,14 +158,14 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
 
       expect(membership_id).to eq('member-id')
       expect(network).to have_received(:get_lbaas_pool).with('pool-id')
-      expect(Bosh::HuaweiCloud::LoadbalancerConfigurator::LoadBalancerResource).to have_received(:new).with('loadbalancer-id', openstack)
-      expect(openstack).to have_received(:wait_resource).with(loadbalancer, :active, :provisioning_status).twice
+      expect(Bosh::HuaweiCloud::LoadbalancerConfigurator::LoadBalancerResource).to have_received(:new).with('loadbalancer-id', huaweicloud)
+      expect(huaweicloud).to have_received(:wait_resource).with(loadbalancer, :active, :provisioning_status).twice
     end
 
     it 'runs into time out while waiting for load balancer to be active before creating pool member' do
       loadbalancer = instance_double(Bosh::HuaweiCloud::LoadbalancerConfigurator::LoadBalancerResource, 'loadbalancer', provisioning_status: 'PENDING_UPDATE')
       allow(Bosh::HuaweiCloud::LoadbalancerConfigurator::LoadBalancerResource).to receive(:new).and_return(loadbalancer)
-      allow(openstack).to receive(:wait_resource).with(loadbalancer, :active, :provisioning_status).and_raise(Bosh::Clouds::CloudError.new('Timed out waiting for load balancer to be ACTIVE'))
+      allow(huaweicloud).to receive(:wait_resource).with(loadbalancer, :active, :provisioning_status).and_raise(Bosh::Clouds::CloudError.new('Timed out waiting for load balancer to be ACTIVE'))
 
       expect {
         subject.create_membership('pool-id', '10.0.0.1', '8080', 'subnet-id')
@@ -173,7 +173,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
 
       expect(network).to have_received(:get_lbaas_pool).with('pool-id')
       expect(network).to_not have_received(:create_lbaas_pool_member)
-      expect(openstack).to have_received(:wait_resource).with(loadbalancer, :active, :provisioning_status).once
+      expect(huaweicloud).to have_received(:wait_resource).with(loadbalancer, :active, :provisioning_status).once
     end
 
     context 'when lbaas resource cannot be found' do
@@ -398,14 +398,14 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
 
       expect(network).to have_received(:delete_lbaas_pool_member).with(pool_id, membership_id)
       expect(network).to have_received(:get_lbaas_pool).with('pool-id')
-      expect(Bosh::HuaweiCloud::LoadbalancerConfigurator::LoadBalancerResource).to have_received(:new).with('loadbalancer-id', openstack)
-      expect(openstack).to have_received(:wait_resource).with(loadbalancer, :active, :provisioning_status).twice
+      expect(Bosh::HuaweiCloud::LoadbalancerConfigurator::LoadBalancerResource).to have_received(:new).with('loadbalancer-id', huaweicloud)
+      expect(huaweicloud).to have_received(:wait_resource).with(loadbalancer, :active, :provisioning_status).twice
     end
 
     it 'runs into time out while waiting for load balancer to be active before deleting pool member' do
       loadbalancer = instance_double(Bosh::HuaweiCloud::LoadbalancerConfigurator::LoadBalancerResource, 'loadbalancer', provisioning_status: 'PENDING_UPDATE')
       allow(Bosh::HuaweiCloud::LoadbalancerConfigurator::LoadBalancerResource).to receive(:new).and_return(loadbalancer)
-      allow(openstack).to receive(:wait_resource).with(loadbalancer, :active, :provisioning_status).and_raise(Bosh::Clouds::CloudError.new('Timed out waiting for load balancer to be ACTIVE'))
+      allow(huaweicloud).to receive(:wait_resource).with(loadbalancer, :active, :provisioning_status).and_raise(Bosh::Clouds::CloudError.new('Timed out waiting for load balancer to be ACTIVE'))
 
       expect {
         subject.remove_vm_from_pool(pool_id, membership_id)
@@ -413,8 +413,8 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
 
       expect(network).to_not have_received(:delete_lbaas_pool_member)
       expect(network).to have_received(:get_lbaas_pool).with('pool-id')
-      expect(Bosh::HuaweiCloud::LoadbalancerConfigurator::LoadBalancerResource).to have_received(:new).with('loadbalancer-id', openstack)
-      expect(openstack).to have_received(:wait_resource).with(loadbalancer, :active, :provisioning_status)
+      expect(Bosh::HuaweiCloud::LoadbalancerConfigurator::LoadBalancerResource).to have_received(:new).with('loadbalancer-id', huaweicloud)
+      expect(huaweicloud).to have_received(:wait_resource).with(loadbalancer, :active, :provisioning_status)
     end
 
     context 'when load balancer resources are not in a valid state e.g. pool has more than one loadbalancer associated' do
@@ -606,7 +606,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
   end
 
   describe Bosh::HuaweiCloud::LoadbalancerConfigurator::LoadBalancerResource do
-    let(:subject) { Bosh::HuaweiCloud::LoadbalancerConfigurator::LoadBalancerResource.new('loadbalancer-id', openstack) }
+    let(:subject) { Bosh::HuaweiCloud::LoadbalancerConfigurator::LoadBalancerResource.new('loadbalancer-id', huaweicloud) }
     let(:loadbalancer) { double('loadbalancer', body: { 'loadbalancer' => { 'id' => 'loadbalancer-id', 'provisioning_status' => 'ACTIVE' } }) }
 
     describe '#provisioning_status' do

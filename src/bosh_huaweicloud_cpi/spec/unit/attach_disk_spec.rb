@@ -19,13 +19,13 @@ describe Bosh::HuaweiCloud::Cloud do
     @registry = mock_registry
   end
 
-  it 'attaches an OpenStack volume to a server' do
+  it 'attaches an HuaweiCloud volume to a server' do
     volume_attachments = []
     attachment = double('attachment', device: '/dev/sdc')
 
     expect(server).to receive(:volume_attachments).and_return(volume_attachments)
     expect(server).to receive(:attach_volume).with(volume.id, '/dev/sdc').and_return(attachment)
-    expect(cloud.openstack).to receive(:wait_resource).with(volume, :'in-use')
+    expect(cloud.huaweicloud).to receive(:wait_resource).with(volume, :'in-use')
 
     old_settings = { 'foo' => 'bar' }
     new_settings = {
@@ -50,7 +50,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
     expect(server).to receive(:volume_attachments).and_return(volume_attachments)
     expect(server).to receive(:attach_volume).with(volume.id, '/dev/sde').and_return(attachment)
-    expect(cloud.openstack).to receive(:wait_resource).with(volume, :'in-use')
+    expect(cloud.huaweicloud).to receive(:wait_resource).with(volume, :'in-use')
 
     old_settings = { 'foo' => 'bar' }
     new_settings = {
@@ -110,7 +110,7 @@ describe Bosh::HuaweiCloud::Cloud do
   context 'first device name letter' do
     before do
       allow(server).to receive(:volume_attachments).and_return([])
-      allow(cloud.openstack).to receive(:wait_resource)
+      allow(cloud.huaweicloud).to receive(:wait_resource)
       allow(cloud).to receive(:update_agent_settings)
     end
     subject(:attach_disk) { cloud.attach_disk('i-test', 'v-foobar') }
@@ -145,7 +145,7 @@ describe Bosh::HuaweiCloud::Cloud do
     context 'when config_drive is set as disk' do
       let(:cloud_options) do
         cloud_options = mock_cloud_options
-        cloud_options['properties']['openstack']['config_drive'] = 'disk'
+        cloud_options['properties']['huaweicloud']['config_drive'] = 'disk'
         cloud_options
       end
 
@@ -168,7 +168,7 @@ describe Bosh::HuaweiCloud::Cloud do
       let(:flavor) { double('flavor', id: 'f-test', ephemeral: 1024, swap: 200) }
       let(:cloud_options) do
         cloud_options = mock_cloud_options
-        cloud_options['properties']['openstack']['config_drive'] = 'disk'
+        cloud_options['properties']['huaweicloud']['config_drive'] = 'disk'
         cloud_options
       end
 

@@ -16,12 +16,12 @@ describe Bosh::HuaweiCloud::ServerGroups do
                                    create: OpenStruct.new('id' => 'fake-server-group-id', 'name' => "fake-uuid-#{bosh_group}", 'policy' => 'soft-anti-affinity'))
   }
 
-  let(:openstack) {
-    double('openstack', compute: double(:compute, server_groups: fog_server_groups))
+  let(:huaweicloud) {
+    double('huaweicloud', compute: double(:compute, server_groups: fog_server_groups))
   }
 
   subject(:server_groups) {
-    Bosh::HuaweiCloud::ServerGroups.new(openstack)
+    Bosh::HuaweiCloud::ServerGroups.new(huaweicloud)
   }
 
   after do
@@ -30,8 +30,8 @@ describe Bosh::HuaweiCloud::ServerGroups do
 
   before do
     allow(Bosh::Clouds::Config).to receive(:logger).and_return(logger)
-    allow(openstack).to receive(:with_huaweicloud) { |&block| block.call }
-    allow(openstack).to receive(:is_v3).and_return(version == 'v3' ? true : false)
+    allow(huaweicloud).to receive(:with_huaweicloud) { |&block| block.call }
+    allow(huaweicloud).to receive(:is_v3).and_return(version == 'v3' ? true : false)
   end
 
   let(:version) {
@@ -58,7 +58,7 @@ describe Bosh::HuaweiCloud::ServerGroups do
 
   context 'when a server_group with soft-anti-affinity policy already exists for this name' do
     before(:each) do
-      allow(openstack.compute).to receive(:delete_server_group)
+      allow(huaweicloud.compute).to receive(:delete_server_group)
     end
 
     context 'when there are no members in the server group' do
@@ -84,7 +84,7 @@ describe Bosh::HuaweiCloud::ServerGroups do
         server_groups.delete_if_no_members('fake-uuid', bosh_group)
 
         expect(fog_server_groups).to have_received(:all)
-        expect(openstack.compute).to have_received(:delete_server_group).with('123')
+        expect(huaweicloud.compute).to have_received(:delete_server_group).with('123')
       end
     end
 
@@ -98,7 +98,7 @@ describe Bosh::HuaweiCloud::ServerGroups do
         server_groups.delete_if_no_members('fake-uuid', bosh_group)
 
         expect(fog_server_groups).to have_received(:all)
-        expect(openstack.compute).to_not have_received(:delete_server_group)
+        expect(huaweicloud.compute).to_not have_received(:delete_server_group)
       end
     end
   end
@@ -121,9 +121,9 @@ describe Bosh::HuaweiCloud::ServerGroups do
 
       before(:each) do
         if keystone_version == 'v2'
-          allow(openstack).to receive(:project_name).and_return('my-project')
+          allow(huaweicloud).to receive(:project_name).and_return('my-project')
         else
-          allow(openstack).to receive(:project_name).and_return('my-project')
+          allow(huaweicloud).to receive(:project_name).and_return('my-project')
         end
       end
 

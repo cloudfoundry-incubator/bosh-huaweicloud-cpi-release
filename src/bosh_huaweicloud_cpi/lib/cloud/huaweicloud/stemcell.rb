@@ -4,24 +4,24 @@ module Bosh::HuaweiCloud
 
     attr_reader :id, :image_id
 
-    def initialize(logger, openstack, id)
+    def initialize(logger, huaweicloud, id)
       @image_id = id
-      @openstack = openstack
+      @huaweicloud = huaweicloud
       @logger = logger
     end
 
-    def self.create(logger, openstack, id)
+    def self.create(logger, huaweicloud, id)
       regex = / light$/
 
       if id.match(regex)
-        LightStemcell.new(logger, openstack, id.gsub(regex, ''))
+        LightStemcell.new(logger, huaweicloud, id.gsub(regex, ''))
       else
-        HeavyStemcell.new(logger, openstack, id)
+        HeavyStemcell.new(logger, huaweicloud, id)
       end
     end
 
     def validate_existence
-      image = @openstack.with_huaweicloud { @openstack.image.images.find_by_id(image_id) }
+      image = @huaweicloud.with_huaweicloud { @huaweicloud.image.images.find_by_id(image_id) }
       cloud_error("Image `#{id}' not found") if image.nil?
       @logger.debug("Using image: `#{id}'")
     end
@@ -30,15 +30,15 @@ module Bosh::HuaweiCloud
   class HeavyStemcell
     include Stemcell
 
-    def initialize(logger, openstack, id)
+    def initialize(logger, huaweicloud, id)
       super
       @id = id
     end
 
     def delete
-      image = @openstack.with_huaweicloud { @openstack.image.images.find_by_id(image_id) }
+      image = @huaweicloud.with_huaweicloud { @huaweicloud.image.images.find_by_id(image_id) }
       if image
-        @openstack.with_huaweicloud { image.destroy }
+        @huaweicloud.with_huaweicloud { image.destroy }
         @logger.info("Stemcell `#{image_id}' is now deleted")
       else
         @logger.info("Stemcell `#{image_id}' not found. Skipping.")
@@ -49,7 +49,7 @@ module Bosh::HuaweiCloud
   class LightStemcell
     include Stemcell
 
-    def initialize(logger, openstack, id)
+    def initialize(logger, huaweicloud, id)
       super
       @id = "#{id} light"
     end

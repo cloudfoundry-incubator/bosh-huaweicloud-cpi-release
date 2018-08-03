@@ -15,7 +15,7 @@ module Bosh::HuaweiCloud
     ##
     # Configures OpenStack vip network
     #
-    # @param [Bosh::HuaweiCloud::Huawei] openstack
+    # @param [Bosh::HuaweiCloud::Huawei] huaweicloud
     # @param [Fog::Compute::HuaweiCloud::Server] server OpenStack server to
     #   configure
     def configure(huaweicloud, server, network_id)

@@ -10,7 +10,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
     expect(snapshot).to receive(:status).and_return(:available)
     expect(snapshot).to receive(:destroy).and_return(true)
-    expect(cloud.openstack).to receive(:wait_resource).with(snapshot, :deleted, :status, true)
+    expect(cloud.huaweicloud).to receive(:wait_resource).with(snapshot, :deleted, :status, true)
 
     cloud.delete_snapshot('snap-foobar')
   end

@@ -1,9 +1,9 @@
 module Bosh::HuaweiCloud
   class StemcellCreator
     include Helpers
-    def initialize(logger, openstack, cloud_properties)
+    def initialize(logger, huaweicloud, cloud_properties)
       @logger = logger
-      @openstack = openstack
+      @huaweicloud = huaweicloud
       @cloud_properties = cloud_properties
     end
 
@@ -15,12 +15,12 @@ module Bosh::HuaweiCloud
 
     def creator
       if @cloud_properties.key?('image_id')
-        LightStemcellCreator.new(@logger, @openstack, @cloud_properties)
+        LightStemcellCreator.new(@logger, @huaweicloud, @cloud_properties)
       else
-        if @openstack.image.class.to_s.include?('Fog::Image::HuaweiCloud::V1')
-          StemcellCreatorV1.new(@logger, @openstack, @cloud_properties)
+        if @huaweicloud.image.class.to_s.include?('Fog::Image::HuaweiCloud::V1')
+          StemcellCreatorV1.new(@logger, @huaweicloud, @cloud_properties)
         else
-          StemcellCreatorV2.new(@logger, @openstack, @cloud_properties)
+          StemcellCreatorV2.new(@logger, @huaweicloud, @cloud_properties)
         end
       end
     end
@@ -28,21 +28,21 @@ module Bosh::HuaweiCloud
 
   class LightStemcellCreator
     include Helpers
-    def initialize(logger, openstack, cloud_properties)
+    def initialize(logger, huaweicloud, cloud_properties)
       @logger = logger
-      @openstack = openstack
+      @huaweicloud = huaweicloud
       @cloud_properties = cloud_properties
     end
 
     def create(_, _)
       image_id = @cloud_properties['image_id']
       @logger.info("Checking for image with id '#{image_id}' referenced by light stemcell")
-      image = @openstack.image.images.get(image_id)
+      image = @huaweicloud.image.images.get(image_id)
       if !image || image.status != 'active'
         cloud_error("No active image with id '#{image_id}' referenced by light stemcell found in OpenStack.")
       end
 
-      LightStemcell.new(@logger, @openstack, image.id)
+      LightStemcell.new(@logger, @huaweicloud, image.id)
     end
   end
 
@@ -71,9 +71,9 @@ module Bosh::HuaweiCloud
         image = upload(image_params, image_location)
 
         @logger.info("Waiting for image '#{image.id}' to have status 'active'...")
-        @openstack.wait_resource(image, :active)
+        @huaweicloud.wait_resource(image, :active)
 
-        HeavyStemcell.new(@logger, @openstack, image.id.to_s)
+        HeavyStemcell.new(@logger, @huaweicloud, image.id.to_s)
       end
     rescue StandardError => e
       @logger.error(e)
@@ -82,7 +82,7 @@ module Bosh::HuaweiCloud
 
     def create_openstack_image(image_params)
       @logger.debug("Using image parms: `#{image_params.inspect}'")
-      @openstack.with_huaweicloud { @openstack.image.images.create(image_params) }
+      @huaweicloud.with_huaweicloud { @huaweicloud.image.images.create(image_params) }
     end
 
     def unpack_image(tmp_dir, image_path)
@@ -119,9 +119,9 @@ module Bosh::HuaweiCloud
   class StemcellCreatorV1
     include HeavyStemcellCreator
 
-    def initialize(logger, openstack, cloud_properties)
+    def initialize(logger, huaweicloud, cloud_properties)
       @logger = logger
-      @openstack = openstack
+      @huaweicloud = huaweicloud
       @cloud_properties = cloud_properties
     end
 
@@ -142,9 +142,9 @@ module Bosh::HuaweiCloud
   class StemcellCreatorV2
     include HeavyStemcellCreator
 
-    def initialize(logger, openstack, cloud_properties)
+    def initialize(logger, huaweicloud, cloud_properties)
       @logger = logger
-      @openstack = openstack
+      @huaweicloud = huaweicloud
       @cloud_properties = cloud_properties
     end
 
@@ -158,7 +158,7 @@ module Bosh::HuaweiCloud
 
     def upload(image_params, image_location)
       image = create_openstack_image(image_params)
-      @openstack.wait_resource(image, :queued)
+      @huaweicloud.wait_resource(image, :queued)
       @logger.info("Performing file upload for image: '#{image.id}'...")
       image.upload_data(File.open(image_location, 'rb'))
       image

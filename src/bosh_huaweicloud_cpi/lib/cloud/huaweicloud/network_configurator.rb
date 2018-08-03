@@ -49,9 +49,9 @@ module Bosh::HuaweiCloud
       end
     end
 
-    def pick_groups(openstack, default_security_groups, resource_pool_groups)
+    def pick_groups(huaweicloud, default_security_groups, resource_pool_groups)
       @picked_security_groups = SecurityGroups.select_and_retrieve(
-        openstack,
+        huaweicloud,
         default_security_groups,
         security_groups,
         resource_pool_groups,
@@ -59,16 +59,16 @@ module Bosh::HuaweiCloud
       @logger.debug("Using security groups: `#{@picked_security_groups.map(&:name).join(', ')}'")
     end
 
-    def prepare(openstack)
+    def prepare(huaweicloud)
       security_group_ids = picked_security_groups.map(&:id)
       @networks.each do |network|
-        network.prepare(openstack, security_group_ids)
+        network.prepare(huaweicloud, security_group_ids)
       end
     end
 
-    def cleanup(openstack)
+    def cleanup(huaweicloud)
       @networks.each do |network|
-        network.cleanup(openstack)
+        network.cleanup(huaweicloud)
       end
     end
 
@@ -131,15 +131,15 @@ module Bosh::HuaweiCloud
       extract_subnet_id(network)
     end
 
-    def self.matching_gateway_subnet_ids_for_ip(network_spec, openstack, ip)
+    def self.matching_gateway_subnet_ids_for_ip(network_spec, huaweicloud, ip)
       network_id = get_gateway_network_id(network_spec)
-      network_subnets = openstack.network.list_subnets('network_id' => network_id).body['subnets']
+      network_subnets = huaweicloud.network.list_subnets('network_id' => network_id).body['subnets']
       network_subnets.select do |subnet|
         NetAddr::CIDR.create(subnet['cidr']).matches?(ip)
       end.map { |subnet| subnet['id'] }
     end
 
-    def self.gateway_ip(network_spec, openstack, server)
+    def self.gateway_ip(network_spec, huaweicloud, server)
       network = get_gateway_network(network_spec)
       network_type = network_type(network)
 
@@ -150,7 +150,7 @@ module Bosh::HuaweiCloud
           raise Bosh::Clouds::VMCreationFailed.new(false), 'Gateway IP address could not be determined. Gateway network is dynamic, but additional private networks exist.'
         end
 
-        openstack.with_huaweicloud {
+        huaweicloud.with_huaweicloud {
           return server.addresses.values.first.dig(0, 'addr')
         }
       end
@@ -159,15 +159,15 @@ module Bosh::HuaweiCloud
     ##
     # Applies network configuration to the vm
     #
-    # @param [Bosh::HuaweiCloud::Huawei] openstack
+    # @param [Bosh::HuaweiCloud::Huawei] huaweicloud
     # @param [Fog::Compute::HuaweiCloud::Server] server OpenStack server to
     #   configure
-    def configure(openstack, server)
+    def configure(huaweicloud, server)
       @networks.each do |network|
-        network.configure(openstack, server)
+        network.configure(huaweicloud, server)
       end
 
-      @vip_network&.configure(openstack, server, NetworkConfigurator.get_gateway_network_id(@network_spec))
+      @vip_network&.configure(huaweicloud, server, NetworkConfigurator.get_gateway_network_id(@network_spec))
     end
 
     ##
@@ -189,19 +189,19 @@ module Bosh::HuaweiCloud
       end
     end
 
-    def self.port_ids(openstack, server_id)
-      return [] if openstack.use_nova_networking?
-      ports = openstack.with_huaweicloud {
-        openstack.network.ports.all(device_id: server_id)
+    def self.port_ids(huaweicloud, server_id)
+      return [] if huaweicloud.use_nova_networking?
+      ports = huaweicloud.with_huaweicloud {
+        huaweicloud.network.ports.all(device_id: server_id)
       }
       ports.map(&:id)
     end
 
-    def self.cleanup_ports(openstack, port_ids)
-      return if openstack.use_nova_networking?
+    def self.cleanup_ports(huaweicloud, port_ids)
+      return if huaweicloud.use_nova_networking?
       port_ids.each do |port_id|
-        openstack.with_huaweicloud {
-          port = openstack.network.ports.get(port_id)
+        huaweicloud.with_huaweicloud {
+          port = huaweicloud.network.ports.get(port_id)
           if port
             Bosh::Clouds::Config.logger.debug("Deleting port #{port_id}")
             port.destroy

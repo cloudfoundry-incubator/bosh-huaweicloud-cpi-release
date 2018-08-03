@@ -18,7 +18,7 @@ describe Bosh::HuaweiCloud::Cloud do
     describe 'validation' do
       let(:options) do
         {
-          'openstack' => {
+          'huaweicloud' => {
             'username' => 'fake-username',
             'api_key' => 'fake-api-key',
           },
@@ -33,8 +33,8 @@ describe Bosh::HuaweiCloud::Cloud do
 
       context 'when keystone V2 API is used' do
         before do
-          options['openstack']['auth_url'] = 'http://fake-auth-url/v2.0'
-          options['openstack']['tenant'] = 'fake-tenant'
+          options['huaweicloud']['auth_url'] = 'http://fake-auth-url/v2.0'
+          options['huaweicloud']['tenant'] = 'fake-tenant'
         end
 
         it 'does not raise an error' do
@@ -43,13 +43,13 @@ describe Bosh::HuaweiCloud::Cloud do
 
         context 'when connection_options are specified' do
           it 'expects connection_options to be a hash' do
-            options['openstack']['connection_options'] = { 'any-key' => 'any-value' }
+            options['huaweicloud']['connection_options'] = { 'any-key' => 'any-value' }
 
             expect { subject }.to_not raise_error
           end
 
           it 'raises an error if connection_options is not a Hash' do
-            options['openstack']['connection_options'] = 'connection_options'
+            options['huaweicloud']['connection_options'] = 'connection_options'
 
             expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
           end
@@ -57,13 +57,13 @@ describe Bosh::HuaweiCloud::Cloud do
 
         context 'when boot_from_volume is specified' do
           it 'expects boot_from_volume to be a boolean' do
-            options['openstack']['boot_from_volume'] = true
+            options['huaweicloud']['boot_from_volume'] = true
 
             expect { subject }.to_not raise_error
           end
 
           it 'raises an error if boot_from_volume is not a boolean' do
-            options['openstack']['boot_from_volume'] = 'boot_from_volume'
+            options['huaweicloud']['boot_from_volume'] = 'boot_from_volume'
 
             expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
           end
@@ -71,22 +71,22 @@ describe Bosh::HuaweiCloud::Cloud do
 
         context 'config_drive' do
           it 'accepts cdrom as a value' do
-            options['openstack']['config_drive'] = 'cdrom'
+            options['huaweicloud']['config_drive'] = 'cdrom'
             expect { subject }.to_not raise_error
           end
 
           it 'accepts disk as a value' do
-            options['openstack']['config_drive'] = 'disk'
+            options['huaweicloud']['config_drive'] = 'disk'
             expect { subject }.to_not raise_error
           end
 
           it 'accepts nil as a value' do
-            options['openstack']['config_drive'] = nil
+            options['huaweicloud']['config_drive'] = nil
             expect { subject }.to_not raise_error
           end
 
           it 'raises an error if config_drive is not cdrom or disk or nil' do
-            options['openstack']['config_drive'] = 'incorrect-value'
+            options['huaweicloud']['config_drive'] = 'incorrect-value'
             expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
           end
         end
@@ -94,23 +94,23 @@ describe Bosh::HuaweiCloud::Cloud do
 
       context 'when keystone V3 API is used' do
         before do
-          options['openstack']['auth_url'] = 'http://127.0.0.1:5000/v3'
+          options['huaweicloud']['auth_url'] = 'http://127.0.0.1:5000/v3'
         end
 
         it 'raises an error when no project is specified' do
-          options['openstack']['domain'] = 'fake_domain'
-          expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties: #<Membrane::SchemaValidationError: { openstack => { project => Missing key } }/)
+          options['huaweicloud']['domain'] = 'fake_domain'
+          expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties: #<Membrane::SchemaValidationError: { huaweicloud => { project => Missing key } }/)
         end
 
         it 'raises an error when no domain is specified' do
-          options['openstack']['project'] = 'fake_project'
-          expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties: #<Membrane::SchemaValidationError: { openstack => { domain => Missing key } }/)
+          options['huaweicloud']['project'] = 'fake_project'
+          expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties: #<Membrane::SchemaValidationError: { huaweicloud => { domain => Missing key } }/)
         end
 
         context 'when project and domain are specified' do
           before do
-            options['openstack']['project'] = 'fake_project'
-            options['openstack']['domain'] = 'fake_domain'
+            options['huaweicloud']['project'] = 'fake_project'
+            options['huaweicloud']['domain'] = 'fake_domain'
           end
 
           it 'does not raise an error' do

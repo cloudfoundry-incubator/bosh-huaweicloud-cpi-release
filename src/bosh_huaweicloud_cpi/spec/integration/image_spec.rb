@@ -8,7 +8,7 @@ describe Bosh::HuaweiCloud::Cloud do
   end
 
   let(:logger) { @config.logger }
-  let(:openstack) { @config.create_openstack }
+  let(:huaweicloud) { @config.create_huaweicloud }
 
   before do
     delegate = double('delegate', logger: logger, cpi_task_log: nil)

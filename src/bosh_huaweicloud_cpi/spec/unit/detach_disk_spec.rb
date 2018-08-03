@@ -19,7 +19,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
     expect(server).to receive(:volume_attachments).and_return(volume_attachments)
     expect(server).to receive(:detach_volume).with(volume.id).and_return(true)
-    expect(cloud.openstack).to receive(:wait_resource).with(volume, :available)
+    expect(cloud.huaweicloud).to receive(:wait_resource).with(volume, :available)
 
     old_settings = {
       'foo' => 'bar',

@@ -8,7 +8,7 @@ describe Bosh::HuaweiCloud::FloatingIp do
   }
   let(:network) { double('network', get_server: nil, list_floating_ips: nil, associate_floating_ip: nil, disassociate_floating_ip: nil, get_port: nil, ports: nil) }
   let(:compute) { double('compute', addresses: nil) }
-  let(:openstack) { double('openstack', use_nova_networking?: use_nova_networking, network: network, compute: compute) }
+  let(:huaweicloud) { double('openstack', use_nova_networking?: use_nova_networking, network: network, compute: compute) }
 
   context 'when `use_nova_networking=false`' do
     let(:use_nova_networking) { false }
@@ -121,7 +121,7 @@ describe Bosh::HuaweiCloud::FloatingIp do
         }
 
         it 'disassociates the floating ip and associates it with the given server' do
-          Bosh::HuaweiCloud::FloatingIp.reassociate(openstack, '1.2.3.4', server, 'network-id')
+          Bosh::HuaweiCloud::FloatingIp.reassociate(huaweicloud, '1.2.3.4', server, 'network-id')
 
           expect(network).to have_received(:list_floating_ips).with('floating_ip_address' => '1.2.3.4')
 
@@ -137,7 +137,7 @@ describe Bosh::HuaweiCloud::FloatingIp do
         let(:floating_ip_port_id) { nil }
 
         it 'assigns the given floating ip to the given server' do
-          Bosh::HuaweiCloud::FloatingIp.reassociate(openstack, '1.2.3.4', server, 'network-id')
+          Bosh::HuaweiCloud::FloatingIp.reassociate(huaweicloud, '1.2.3.4', server, 'network-id')
 
           expect(network).to have_received(:list_floating_ips).with('floating_ip_address' => '1.2.3.4')
           expect(port_collection).to have_received(:all).with(device_id: 'server-id', network_id: 'network-id')
@@ -151,7 +151,7 @@ describe Bosh::HuaweiCloud::FloatingIp do
           end
 
           it 'assigns the given floating ip to the first port' do
-            Bosh::HuaweiCloud::FloatingIp.reassociate(openstack, '1.2.3.4', server, 'network-id')
+            Bosh::HuaweiCloud::FloatingIp.reassociate(huaweicloud, '1.2.3.4', server, 'network-id')
 
             expect(network).to have_received(:list_floating_ips).with('floating_ip_address' => '1.2.3.4')
             expect(port_collection).to have_received(:all).with(device_id: 'server-id', network_id: 'network-id')
@@ -166,7 +166,7 @@ describe Bosh::HuaweiCloud::FloatingIp do
 
         it 'raises a cloud error' do
           expect {
-            Bosh::HuaweiCloud::FloatingIp.reassociate(openstack, '1.2.3.4', server, 'network-id')
+            Bosh::HuaweiCloud::FloatingIp.reassociate(huaweicloud, '1.2.3.4', server, 'network-id')
           }.to raise_error Bosh::Clouds::CloudError, "Floating IP '1.2.3.4' not allocated"
         end
       end
@@ -176,7 +176,7 @@ describe Bosh::HuaweiCloud::FloatingIp do
 
         it 'raises a cloud error' do
           expect {
-            Bosh::HuaweiCloud::FloatingIp.reassociate(openstack, '1.2.3.4', server, 'network-id')
+            Bosh::HuaweiCloud::FloatingIp.reassociate(huaweicloud, '1.2.3.4', server, 'network-id')
           }.to raise_error Bosh::Clouds::CloudError, "Floating IP '1.2.3.4' found in multiple networks: 'id1', 'id2'"
         end
       end
@@ -187,7 +187,7 @@ describe Bosh::HuaweiCloud::FloatingIp do
         end
         it 'raises a cloud error' do
           expect {
-            Bosh::HuaweiCloud::FloatingIp.reassociate(openstack, '1.2.3.4', server, 'network-id-not-matching-the-port')
+            Bosh::HuaweiCloud::FloatingIp.reassociate(huaweicloud, '1.2.3.4', server, 'network-id-not-matching-the-port')
           }.to raise_error Bosh::Clouds::CloudError, "Server has no port in network 'network-id-not-matching-the-port'"
         end
       end
@@ -214,7 +214,7 @@ describe Bosh::HuaweiCloud::FloatingIp do
         end
 
         it 'adds floating ip to the server for vip network' do
-          Bosh::HuaweiCloud::FloatingIp.reassociate(openstack, '1.2.3.4', server, 'network-id')
+          Bosh::HuaweiCloud::FloatingIp.reassociate(huaweicloud, '1.2.3.4', server, 'network-id')
 
           expect(logger).to have_received(:info).with("Disassociating floating IP '1.2.3.4' from server 'old-instance-id'")
           expect(address).to have_received(:server=).with(nil)
@@ -229,7 +229,7 @@ describe Bosh::HuaweiCloud::FloatingIp do
         end
 
         it 'adds free floating ip to the server for vip network' do
-          Bosh::HuaweiCloud::FloatingIp.reassociate(openstack, '1.2.3.4', server, 'network-id')
+          Bosh::HuaweiCloud::FloatingIp.reassociate(huaweicloud, '1.2.3.4', server, 'network-id')
 
           expect(address).to_not have_received(:server=).with(nil)
           expect(address).to have_received(:server=).with(server)
@@ -243,7 +243,7 @@ describe Bosh::HuaweiCloud::FloatingIp do
 
         it 'fails' do
           expect {
-            Bosh::HuaweiCloud::FloatingIp.reassociate(openstack, '1.2.3.4', server, 'network-id')
+            Bosh::HuaweiCloud::FloatingIp.reassociate(huaweicloud, '1.2.3.4', server, 'network-id')
           }.to raise_error Bosh::Clouds::CloudError, /Floating IP .* not allocated/
         end
       end

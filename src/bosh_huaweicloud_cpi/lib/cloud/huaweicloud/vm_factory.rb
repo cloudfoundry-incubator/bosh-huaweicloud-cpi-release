@@ -2,8 +2,8 @@ module Bosh::HuaweiCloud
   class VmFactory
     include Helpers
 
-    def initialize(openstack, server, create_vm_params, disk_locality, az_provider, openstack_properties)
-      @openstack = openstack
+    def initialize(huaweicloud, server, create_vm_params, disk_locality, az_provider, openstack_properties)
+      @huaweicloud = huaweicloud
       @server = server
 
       @create_vm_params = create_vm_params
@@ -36,19 +36,19 @@ module Bosh::HuaweiCloud
     private
 
     def pick_security_groups(server_params, resource_pool_groups, network_configurator)
-      network_configurator.check_preconditions(@openstack.use_nova_networking?, @create_vm_params[:config_drive], @server.use_dhcp)
-      network_configurator.pick_groups(@openstack, @openstack_properties.default_security_groups, resource_pool_groups)
+      network_configurator.check_preconditions(@huaweicloud.use_nova_networking?, @create_vm_params[:config_drive], @server.use_dhcp)
+      network_configurator.pick_groups(@huaweicloud, @openstack_properties.default_security_groups, resource_pool_groups)
       server_params[:security_groups] = network_configurator.picked_security_groups.map(&:name)
     end
 
     def pick_stemcell(server_params, stemcell_id)
-      stemcell = Stemcell.create(@logger, @openstack, stemcell_id)
+      stemcell = Stemcell.create(@logger, @huaweicloud, stemcell_id)
       stemcell.validate_existence
       server_params[:image_ref] = stemcell.image_id
     end
 
     def pick_flavor(server_params, resource_pool)
-      flavor = @openstack.with_huaweicloud { @openstack.compute.flavors.find { |f| f.name == resource_pool['instance_type'] } }
+      flavor = @huaweicloud.with_huaweicloud { @huaweicloud.compute.flavors.find { |f| f.name == resource_pool['instance_type'] } }
       cloud_error("Flavor `#{resource_pool['instance_type']}' not found") if flavor.nil?
       if flavor_has_ephemeral_disk?(flavor)
         if flavor.ram
@@ -74,7 +74,7 @@ module Bosh::HuaweiCloud
     end
 
     def validate_key_exists(keyname)
-      keypair = @openstack.with_huaweicloud { @openstack.compute.key_pairs.find { |k| k.name == keyname } }
+      keypair = @huaweicloud.with_huaweicloud { @huaweicloud.compute.key_pairs.find { |k| k.name == keyname } }
       cloud_error("Key-pair `#{keyname}' not found") if keypair.nil?
       @logger.debug("Using key-pair: `#{keypair.name}' (#{keypair.fingerprint})")
     end
@@ -89,7 +89,7 @@ module Bosh::HuaweiCloud
         return
       end
 
-      server_group_id = ServerGroups.new(@openstack).find_or_create(Bosh::Clouds::Config.uuid, bosh_group)
+      server_group_id = ServerGroups.new(@huaweicloud).find_or_create(Bosh::Clouds::Config.uuid, bosh_group)
       server_group_hint = { 'group' => server_group_id }
       return server_params[:os_scheduler_hints].merge!(server_group_hint) if server_params[:os_scheduler_hints]
       server_params[:os_scheduler_hints] = server_group_hint

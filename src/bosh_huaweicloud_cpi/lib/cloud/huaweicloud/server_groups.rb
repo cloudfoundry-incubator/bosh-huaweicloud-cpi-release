@@ -4,29 +4,29 @@ module Bosh::HuaweiCloud
 
     POLICY = 'soft-anti-affinity'.freeze
 
-    def initialize(openstack)
-      @openstack = openstack
+    def initialize(huaweicloud)
+      @huaweicloud = huaweicloud
       @logger = Bosh::Clouds::Config.logger
     end
 
     def find_or_create(uuid, bosh_group)
       name = name(uuid, bosh_group)
-      @openstack.with_huaweicloud do
+      @huaweicloud.with_huaweicloud do
         lock_by_file(bosh_group) do
           begin
             server_group = find(name)
             if server_group
               server_group.id
             else
-              result = @openstack.compute.server_groups.create(name, POLICY)
+              result = @huaweicloud.compute.server_groups.create(name, POLICY)
               result.id
             end
           rescue Excon::Error::Forbidden => error
             if error.message.include?('Quota exceeded, too many server groups')
-              message = "You have reached your quota for server groups for project '#{@openstack.project_name}'. Please disable auto-anti-affinity server groups or increase your quota."
+              message = "You have reached your quota for server groups for project '#{@huaweicloud.project_name}'. Please disable auto-anti-affinity server groups or increase your quota."
               cloud_error(message, error)
             elsif error.message.include?('Quota exceeded, too many servers in group')
-              message = "You have reached your quota for members in a server group for project '#{@openstack.project_name}'. Please disable auto-anti-affinity server groups or increase your quota."
+              message = "You have reached your quota for members in a server group for project '#{@huaweicloud.project_name}'. Please disable auto-anti-affinity server groups or increase your quota."
               cloud_error(message, error)
             end
             raise error
@@ -42,10 +42,10 @@ module Bosh::HuaweiCloud
     end
 
     def delete_if_no_members(uuid, bosh_group)
-      @openstack.with_huaweicloud do
+      @huaweicloud.with_huaweicloud do
         lock_by_file(bosh_group) do
           server_group = find(name(uuid, bosh_group))
-          @openstack.compute.delete_server_group(server_group.id) if server_group&.members&.empty?
+          @huaweicloud.compute.delete_server_group(server_group.id) if server_group&.members&.empty?
         end
       end
     end
@@ -66,7 +66,7 @@ module Bosh::HuaweiCloud
     end
 
     def find(name)
-      groups = @openstack.compute.server_groups.all
+      groups = @huaweicloud.compute.server_groups.all
       groups.find { |group| group.name == name && group.policies.include?(POLICY) }
     end
   end

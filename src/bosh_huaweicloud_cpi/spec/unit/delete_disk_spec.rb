@@ -11,7 +11,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
     expect(volume).to receive(:status).and_return(:available)
     expect(volume).to receive(:destroy).and_return(true)
-    expect(cloud.openstack).to receive(:wait_resource).with(volume, :deleted, :status, true)
+    expect(cloud.huaweicloud).to receive(:wait_resource).with(volume, :deleted, :status, true)
 
     cloud.delete_disk('v-foobar')
   end

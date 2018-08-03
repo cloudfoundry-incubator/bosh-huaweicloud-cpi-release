@@ -6,7 +6,7 @@ describe Bosh::HuaweiCloud::CpiLambda do
     {
       'cloud' => {
         'properties' => {
-          'openstack' => {
+          'huaweicloud' => {
             'key1' => 'value1',
             'key2' => 'value2',
           },
@@ -19,8 +19,8 @@ describe Bosh::HuaweiCloud::CpiLambda do
   let(:ca_cert_from_context) { Tempfile.new('ca_cert').path }
 
   describe 'when creating a cloud' do
-    it 'passes parts of the cpi config to openstack' do
-      expect(Bosh::Clouds::Huawei).to receive(:new).with('openstack' => cpi_config['cloud']['properties']['openstack'],
+    it 'passes parts of the cpi config to huaweicloud' do
+      expect(Bosh::Clouds::Huawei).to receive(:new).with('huaweicloud' => cpi_config['cloud']['properties']['huaweicloud'],
                                                             'cpi_log' => cpi_log)
       subject.call({})
     end
@@ -36,23 +36,23 @@ describe Bosh::HuaweiCloud::CpiLambda do
     end
 
     context 'if using ca_certs in config' do
-      let(:cpi_config) { { 'cloud' => { 'properties' => { 'openstack' => { 'connection_options' => { 'ca_cert' => 'xyz' } } } } } }
+      let(:cpi_config) { { 'cloud' => { 'properties' => { 'huaweicloud' => { 'connection_options' => { 'ca_cert' => 'xyz' } } } } } }
 
       it 'sets ssl_ca_file that is passed and removes ca_certs' do
-        expect(Bosh::Clouds::Huawei).to receive(:new).with('openstack' => { 'connection_options' => { 'ssl_ca_file' => ssl_ca_file } },
+        expect(Bosh::Clouds::Huawei).to receive(:new).with('huaweicloud' => { 'connection_options' => { 'ssl_ca_file' => ssl_ca_file } },
                                                               'cpi_log' => cpi_log)
         subject.call({})
       end
     end
 
-    context 'if openstack properties are provided in the context' do
-      it 'merges the openstack properties' do
+    context 'if huaweicloud properties are provided in the context' do
+      it 'merges the huaweicloud properties' do
         context = {
           'newkey' => 'newvalue',
           'newkey2' => 'newvalue2',
         }
 
-        expect(Bosh::Clouds::Huawei).to receive(:new).with('openstack' => { 'key1' => 'value1',
+        expect(Bosh::Clouds::Huawei).to receive(:new).with('huaweicloud' => { 'key1' => 'value1',
                                                                                'key2' => 'value2',
                                                                                'newkey' => 'newvalue',
                                                                                'newkey2' => 'newvalue2' },
@@ -66,7 +66,7 @@ describe Bosh::HuaweiCloud::CpiLambda do
           'connection_options' => { 'ca_cert' => 'xyz' },
         }
 
-        expect(Bosh::Clouds::Huawei).to receive(:new).with('openstack' => { 'newkey' => 'newvalue',
+        expect(Bosh::Clouds::Huawei).to receive(:new).with('huaweicloud' => { 'newkey' => 'newvalue',
                                                                                'key1' => 'value1',
                                                                                'key2' => 'value2',
                                                                                'connection_options' => { 'ssl_ca_file' => ca_cert_from_context } },

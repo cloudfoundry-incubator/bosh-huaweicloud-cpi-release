@@ -4,15 +4,15 @@ describe Bosh::HuaweiCloud::AvailabilityZoneProvider do
   let(:foo_volume) { double('foo_volume') }
   let(:bar_volume) { double('bar_volume') }
   let(:volumes) { double('volumes') }
-  let(:openstack) { instance_double(Bosh::HuaweiCloud::Huawei) }
+  let(:huaweicloud) { instance_double(Bosh::HuaweiCloud::Huawei) }
   let(:compute) { double(Fog::Compute) }
   let(:volume) { double(Fog::Volume) }
-  let(:az_provider) { Bosh::HuaweiCloud::AvailabilityZoneProvider.new(openstack, ignore_server_az) }
+  let(:az_provider) { Bosh::HuaweiCloud::AvailabilityZoneProvider.new(huaweicloud, ignore_server_az) }
 
   before do
-    allow(openstack).to receive(:compute).and_return(compute)
-    allow(openstack).to receive(:volume).and_return(volume)
-    allow(openstack).to receive(:with_huaweicloud) { |&block| block.call }
+    allow(huaweicloud).to receive(:compute).and_return(compute)
+    allow(huaweicloud).to receive(:volume).and_return(volume)
+    allow(huaweicloud).to receive(:with_huaweicloud) { |&block| block.call }
     allow(bar_volume).to receive(:id).and_return('bar_id')
     allow(foo_volume).to receive(:id).and_return('foo_id')
     allow(foo_volume).to receive(:availability_zone).and_return('west_az')

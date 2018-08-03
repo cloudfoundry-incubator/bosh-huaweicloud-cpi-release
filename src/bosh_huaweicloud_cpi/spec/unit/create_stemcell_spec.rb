@@ -31,7 +31,7 @@ describe Bosh::HuaweiCloud::Cloud do
         expect(@glance.images).to receive(:create).with(image_params).and_return(image)
         allow(image).to receive(:reload).and_return({})
         allow(image).to receive(:status).and_return(:not_active, :active)
-        expect(@cloud.openstack).to receive(:sleep).with(3)
+        expect(@cloud.huaweicloud).to receive(:sleep).with(3)
 
         expect(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
         expect_any_instance_of(Bosh::HuaweiCloud::HeavyStemcellCreator).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
@@ -65,7 +65,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
         expect(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
         expect_any_instance_of(Bosh::HuaweiCloud::HeavyStemcellCreator).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
-        expect(@cloud.openstack).to receive(:wait_resource).with(image, :active)
+        expect(@cloud.huaweicloud).to receive(:wait_resource).with(image, :active)
 
         sc_id = @cloud.create_stemcell('/tmp/foo',
                                        'name' => 'stemcell-name',
@@ -117,7 +117,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
         allow(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
         expect_any_instance_of(Bosh::HuaweiCloud::HeavyStemcellCreator).to receive(:unpack_image)
-        expect(@cloud.openstack).to receive(:wait_resource)
+        expect(@cloud.huaweicloud).to receive(:wait_resource)
 
         @cloud.create_stemcell('/tmp/foo', extra_properties)
       end
@@ -152,7 +152,7 @@ describe Bosh::HuaweiCloud::Cloud do
       context 'stemcell_public_visibility is true' do
         let(:cloud_options) do
           cloud_options = mock_cloud_options['properties']
-          cloud_options['openstack']['stemcell_public_visibility'] = true
+          cloud_options['huaweicloud']['stemcell_public_visibility'] = true
           cloud_options
         end
 
@@ -172,7 +172,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
           expect(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
           expect_any_instance_of(Bosh::HuaweiCloud::HeavyStemcellCreator).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
-          expect(@cloud.openstack).to receive(:wait_resource).with(image, :active)
+          expect(@cloud.huaweicloud).to receive(:wait_resource).with(image, :active)
 
           sc_id = @cloud.create_stemcell('/tmp/foo',
                                          'name' => 'stemcell-name',
@@ -204,7 +204,7 @@ describe Bosh::HuaweiCloud::Cloud do
         expect(@glance.images).to receive(:create).with(image_params).and_return(image)
         allow(image).to receive(:reload).and_return({})
         allow(image).to receive(:status).and_return(:not_queued, :queued, :not_active, :active)
-        expect(@cloud.openstack).to receive(:sleep).with(3).twice
+        expect(@cloud.huaweicloud).to receive(:sleep).with(3).twice
 
         expect(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
         expect_any_instance_of(Bosh::HuaweiCloud::HeavyStemcellCreator).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
@@ -241,7 +241,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
         expect(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
         expect_any_instance_of(Bosh::HuaweiCloud::HeavyStemcellCreator).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
-        expect(@cloud.openstack).to receive(:wait_resource).with(image, :queued)
+        expect(@cloud.huaweicloud).to receive(:wait_resource).with(image, :queued)
 
         fake_file = double(File)
 
@@ -249,7 +249,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
         expect(image).to receive(:upload_data).with(fake_file)
 
-        expect(@cloud.openstack).to receive(:wait_resource).with(image, :active)
+        expect(@cloud.huaweicloud).to receive(:wait_resource).with(image, :active)
 
         sc_id = @cloud.create_stemcell('/tmp/foo',
                                        'name' => 'stemcell-name',
@@ -298,13 +298,13 @@ describe Bosh::HuaweiCloud::Cloud do
 
         allow(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
         allow_any_instance_of(Bosh::HuaweiCloud::HeavyStemcellCreator).to receive(:unpack_image)
-        allow(@cloud.openstack).to receive(:wait_resource).with(image, :queued)
+        allow(@cloud.huaweicloud).to receive(:wait_resource).with(image, :queued)
 
         fake_file = double(File)
         expect(File).to receive(:open).with("#{@tmp_dir}/root.img", 'rb').and_return(fake_file)
         expect(image).to receive(:upload_data).with(fake_file)
 
-        allow(@cloud.openstack).to receive(:wait_resource).with(image, :active)
+        allow(@cloud.huaweicloud).to receive(:wait_resource).with(image, :active)
 
         @cloud.create_stemcell('/tmp/foo', extra_properties)
       end
@@ -343,7 +343,7 @@ describe Bosh::HuaweiCloud::Cloud do
       context 'stemcell_public_visibility is true' do
         let(:cloud_options) do
           cloud_options = mock_cloud_options['properties']
-          cloud_options['openstack']['stemcell_public_visibility'] = true
+          cloud_options['huaweicloud']['stemcell_public_visibility'] = true
           cloud_options
         end
 
@@ -360,13 +360,13 @@ describe Bosh::HuaweiCloud::Cloud do
 
           expect(Dir).to receive(:mktmpdir).and_yield(@tmp_dir)
           expect_any_instance_of(Bosh::HuaweiCloud::HeavyStemcellCreator).to receive(:unpack_image).with(@tmp_dir, '/tmp/foo')
-          expect(@cloud.openstack).to receive(:wait_resource).with(image, :queued)
+          expect(@cloud.huaweicloud).to receive(:wait_resource).with(image, :queued)
 
           fake_file = double(File)
           expect(File).to receive(:open).with("#{@tmp_dir}/root.img", 'rb').and_return(fake_file)
           expect(image).to receive(:upload_data).with(fake_file)
 
-          expect(@cloud.openstack).to receive(:wait_resource).with(image, :active)
+          expect(@cloud.huaweicloud).to receive(:wait_resource).with(image, :active)
 
           sc_id = @cloud.create_stemcell('/tmp/foo',
                                          'name' => 'stemcell-name',
