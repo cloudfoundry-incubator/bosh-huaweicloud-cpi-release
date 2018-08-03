@@ -35,7 +35,7 @@ module Bosh::HuaweiCloud
             end
           end
           @nic['subnet_id'] = subnet_id
-          @nic['fixed_ip'] = @ip
+          @nic['v4_fixed_ip'] = @ip
         elsif vpc_id
           @logger.debug("'subnet_id' is not configured, use vpc instead.")
           huaweicloud.with_huaweicloud do
@@ -43,7 +43,7 @@ module Bosh::HuaweiCloud
               NetAddr::CIDR.create(sub.cidr).matches?(@ip)
             end
             @nic['subnet_id'] = subs.first
-            @nic['fixed_ip'] = @ip
+            @nic['v4_fixed_ip'] = @ip
           end
         end
         if @nic['subnet_id'].nil?
