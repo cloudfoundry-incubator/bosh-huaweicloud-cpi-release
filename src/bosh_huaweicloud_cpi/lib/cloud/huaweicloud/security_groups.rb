@@ -9,11 +9,11 @@ module Bosh::HuaweiCloud
         resource_pool_spec_security_groups,
       )
 
-      openstack_security_groups = huaweicloud.with_huaweicloud {
+      huaweicloud_security_groups = huaweicloud.with_huaweicloud {
         retrieve_security_groups(huaweicloud)
       }
 
-      map_to_security_groups_in_openstack(picked_security_groups, openstack_security_groups)
+      map_to_security_groups_in_huaweicloud(picked_security_groups, huaweicloud_security_groups)
     end
 
     private
@@ -34,21 +34,21 @@ module Bosh::HuaweiCloud
       default_security_groups
     end
 
-    def self.map_to_security_groups_in_openstack(picked_security_groups, openstack_security_groups)
+    def self.map_to_security_groups_in_huaweicloud(picked_security_groups, huaweicloud_security_groups)
       picked_security_groups.map do |configured_sg|
-        openstack_security_group = find_openstack_sg_by_name(openstack_security_groups, configured_sg)
-        openstack_security_group ||= find_openstack_sg_by_id(openstack_security_groups, configured_sg)
-        cloud_error("Security group `#{configured_sg}' not found") unless openstack_security_group
-        openstack_security_group
+        huaweicloud_security_group = find_huaweicloud_sg_by_name(huaweicloud_security_groups, configured_sg)
+        huaweicloud_security_group ||= find_huaweicloud_sg_by_id(huaweicloud_security_groups, configured_sg)
+        cloud_error("Security group `#{configured_sg}' not found") unless huaweicloud_security_group
+        huaweicloud_security_group
       end
     end
 
-    def self.find_openstack_sg_by_name(openstack_security_groups, security_group_name)
-      openstack_security_groups.find { |openstack_sg| openstack_sg.name == security_group_name }
+    def self.find_huaweicloud_sg_by_name(huaweicloud_security_groups, security_group_name)
+      huaweicloud_security_groups.find { |huaweicloud_sg| huaweicloud_sg.name == security_group_name }
     end
 
-    def self.find_openstack_sg_by_id(openstack_security_groups, security_group_id)
-      openstack_security_groups.find { |openstack_sg| openstack_sg.id == security_group_id }
+    def self.find_huaweicloud_sg_by_id(huaweicloud_security_groups, security_group_id)
+      huaweicloud_security_groups.find { |huaweicloud_sg| huaweicloud_sg.id == security_group_id }
     end
   end
 end

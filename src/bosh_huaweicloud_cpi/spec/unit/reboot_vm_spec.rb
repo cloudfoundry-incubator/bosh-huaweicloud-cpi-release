@@ -9,18 +9,18 @@ describe Bosh::HuaweiCloud::Cloud do
     end
   end
 
-  it 'reboots an OpenStack server (CPI call picks soft reboot)' do
+  it 'reboots an HuaweiCloud server (CPI call picks soft reboot)' do
     expect(@cloud).to receive(:soft_reboot).with(@server)
     @cloud.reboot_vm('i-foobar')
   end
 
-  it 'soft reboots an OpenStack server' do
+  it 'soft reboots an HuaweiCloud server' do
     expect(@server).to receive(:reboot)
     expect(@cloud.huaweicloud).to receive(:wait_resource).with(@server, :active, :state)
     @cloud.send(:soft_reboot, @server)
   end
 
-  it 'hard reboots an OpenStack server' do
+  it 'hard reboots an HuaweiCloud server' do
     expect(@server).to receive(:reboot)
     expect(@cloud.huaweicloud).to receive(:wait_resource).with(@server, :active, :state)
     @cloud.send(:hard_reboot, @server)

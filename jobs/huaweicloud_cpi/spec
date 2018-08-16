@@ -11,30 +11,30 @@ packages:
 
 properties:
   huaweicloud.auth_url:
-    description: URL of the OpenStack Identity endpoint to connect to (required)
+    description: URL of the HuaweiCloud Identity endpoint to connect to (required)
     examples:
     - description: Keystone V2 endpoint
       value: http://192.168.0.1:5000/v2.0
     - description: Keystone V3 endpoint
       value: http://192.168.0.1:5000/v3
   huaweicloud.username:
-    description: OpenStack user name (required)
+    description: HuaweiCloud user name (required)
   huaweicloud.api_key:
     description: Huawei Cloud API key (required)
   huaweicloud.tenant:
-    description: OpenStack tenant name (required for Keystone API V2)
+    description: HuaweiCloud tenant name (required for Keystone API V2)
   huaweicloud.project:
-    description: OpenStack project name (required for Keystone API V3)
+    description: HuaweiCloud project name (required for Keystone API V3)
   huaweicloud.domain:
-    description: OpenStack domain (required for Keystone API V3)
+    description: HuaweiCloud domain (required for Keystone API V3)
   huaweicloud.region:
-    description: OpenStack region (optional)
+    description: HuaweiCloud region (optional)
     example: nova
   huaweicloud.endpoint_type:
-    description: OpenStack endpoint type
+    description: HuaweiCloud endpoint type
     default: publicURL
   huaweicloud.state_timeout:
-    description: Timeout (in seconds) for OpenStack resources desired state
+    description: Timeout (in seconds) for HuaweiCloud resources desired state
     default: 300
   huaweicloud.boot_from_volume:
     description: Boot from volume
@@ -56,25 +56,25 @@ properties:
     - description: Any other excon [connection option](https://github.com/excon/excon#options), e.g. setting the read timeout
       value: {read_timeout: 360}
   huaweicloud.default_key_name:
-    description: Default OpenStack keypair to use when spinning up new VMs (required)
+    description: Default HuaweiCloud keypair to use when spinning up new VMs (required)
     example: bosh
   huaweicloud.default_security_groups:
-    description: Default OpenStack security groups to use when spinning up new VMs (required)
+    description: Default HuaweiCloud security groups to use when spinning up new VMs (required)
     example: [bosh-grp]
   huaweicloud.default_volume_type:
-    description: Default OpenStack volume type to use when creating new disks (optional)
+    description: Default HuaweiCloud volume type to use when creating new disks (optional)
     example: SSD
   huaweicloud.wait_resource_poll_interval:
-    description: Changes the delay (in seconds) between each status check to OpenStack when creating a resource (optional, by default 5)
+    description: Changes the delay (in seconds) between each status check to HuaweiCloud when creating a resource (optional, by default 5)
     default: 5
   huaweicloud.config_drive:
-    description: Config drive device (cdrom or disk) to use as metadata service on OpenStack (optional)
+    description: Config drive device (cdrom or disk) to use as metadata service on HuaweiCloud (optional)
     example: cdrom
   huaweicloud.use_dhcp:
     description: Whether to use DHCP when configuring networking on VM (for both manual and dynamic)
     default: true
   huaweicloud.ignore_server_availability_zone:
-    description: When creating a disk, do not use the availability zone of the server, fall back to Openstacks default
+    description: When creating a disk, do not use the availability zone of the server, fall back to HuaweiClouds default
     default: false
   huaweicloud.human_readable_vm_names:
     description: When creating a VM, use the job name as VM name if true. Otherwise use a generated UUID as name. If this parameter is set to true, the registry.endpoint parameter has to be set.
@@ -83,7 +83,7 @@ properties:
     description: 'Use Nova networking APIs instead of Neutron APIs. Note: Nova networking APIs are deprecated with the Newton release, hence this switch will likely not work in future releases.'
     default: false
   huaweicloud.enable_auto_anti_affinity:
-    description: Configures soft anti-affinity. For each instance group an OpenStack server group with a soft-anti-affinity policy is created. If anti-affinity can not be achieved (more than one VM is placed on a single hypervisor) the deployment will not fail and no warning will be shown.
+    description: Configures soft anti-affinity. For each instance group an HuaweiCloud server group with a soft-anti-affinity policy is created. If anti-affinity can not be achieved (more than one VM is placed on a single hypervisor) the deployment will not fail and no warning will be shown.
     default: false
 
   registry.host:

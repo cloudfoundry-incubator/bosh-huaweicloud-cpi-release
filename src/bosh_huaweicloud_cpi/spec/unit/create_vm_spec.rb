@@ -184,11 +184,11 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     }
 
     before(:each) do
-      allow(cloud.network).to receive(:security_groups).and_return(openstack_security_groups)
+      allow(cloud.network).to receive(:security_groups).and_return(huaweicloud_security_groups)
     end
 
     context 'defined in both network and resource_pools spec' do
-      let(:openstack_security_groups) {
+      let(:huaweicloud_security_groups) {
         [
           double('net-group-1', id: 'net-group-1_id', name: 'net-group-1'),
           double('net-group-2', id: 'net-group-2_id', name: 'net-group-2'),
@@ -205,7 +205,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     end
 
     context 'defined in network spec' do
-      let(:openstack_security_groups) {
+      let(:huaweicloud_security_groups) {
         [
           double('net-group-1', id: 'net-group-1_id', name: 'net-group-1'),
           double('net-group-2', id: 'net-group-2_id', name: 'net-group-2'),
@@ -223,7 +223,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     end
 
     context 'defined in resource_pools spec' do
-      let(:openstack_security_groups) {
+      let(:huaweicloud_security_groups) {
         [
           double('pool-group-1', id: 'pool-group-1_id', name: 'pool-group-1'),
           double('pool-group-2', id: 'pool-group-2_id', name: 'pool-group-2'),
@@ -441,12 +441,12 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     end
   end
 
-  context 'when OpenStack cannot create the server' do
+  context 'when HuaweiCloud cannot create the server' do
     before do
       allow(server).to receive(:destroy)
     end
 
-    context 'when OpenStack raises a Timeout error' do
+    context 'when HuaweiCloud raises a Timeout error' do
       let(:socket_error) { Excon::Error::Timeout.new('read timeout reached') }
 
       it 'raises a Cloud error with vm information' do
@@ -458,7 +458,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
       end
     end
 
-    context 'when OpenStack raises a Not Found error' do
+    context 'when HuaweiCloud raises a Not Found error' do
       let(:networks) { double('networks') }
       let(:not_found_error) { Excon::Error::NotFound.new('not found: 814bc266-c6de-4fd0-a713-502da09edbe9') }
 
@@ -486,7 +486,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
         }.to raise_error(Excon::Error::NotFound, 'not found: 814bc266-c6de-4fd0-a713-502da09edbe9')
       end
 
-      context 'when `openstack.network.networks.get` raises' do
+      context 'when `huaweicloud.network.networks.get` raises' do
         before(:each) do
           allow(networks).to receive(:get).and_raise('BOOM!!!')
         end
@@ -525,7 +525,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
       end
     end
 
-    context 'when OpenStack raises a BadRequest error' do
+    context 'when HuaweiCloud raises a BadRequest error' do
       let(:networks) { double('networks') }
       let(:bad_request_error) { Excon::Error::BadRequest.new('Message does not matter here') }
 
@@ -619,10 +619,10 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
   end
 
   context "when security group doesn't exist" do
-    let(:openstack_security_groups) { [double('foo-sec-group', id: 'foo-sec-group-id', name: 'foo')] }
+    let(:huaweicloud_security_groups) { [double('foo-sec-group', id: 'foo-sec-group-id', name: 'foo')] }
 
     it 'raises an error' do
-      allow(cloud.network).to receive(:security_groups).and_return(openstack_security_groups)
+      allow(cloud.network).to receive(:security_groups).and_return(huaweicloud_security_groups)
 
       expect {
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
@@ -649,10 +649,10 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
     it 'updates network settings to include use_dhcp as false' do
       expected_network_spec = dynamic_network_spec
       expected_network_spec['use_dhcp'] = false
-      expected_openstack_params = huaweicloud_params('network_a' => expected_network_spec)
+      expected_huaweicloud_params = huaweicloud_params('network_a' => expected_network_spec)
 
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-      expect(cloud.compute.servers).to have_received(:create).with(expected_openstack_params)
+      expect(cloud.compute.servers).to have_received(:create).with(expected_huaweicloud_params)
     end
   end
 
@@ -684,14 +684,14 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
       end
 
       it 'takes the key_name from CPI cloud properties' do
-        expected_openstack_params = huaweicloud_params
-        expected_openstack_params[:key_name] = 'default_key_name'
+        expected_huaweicloud_params = huaweicloud_params
+        expected_huaweicloud_params[:key_name] = 'default_key_name'
 
         expect_any_instance_of(Bosh::HuaweiCloud::VmFactory).to receive(:validate_key_exists).with(options['huaweicloud']['default_key_name'])
 
         cloud.create_vm('agent-id', 'sc-id', resource_pool_spec_no_key, { 'network_a' => dynamic_network_spec }, nil, environment)
 
-        expect(cloud.compute.servers).to have_received(:create).with(expected_openstack_params)
+        expect(cloud.compute.servers).to have_received(:create).with(expected_huaweicloud_params)
       end
     end
 
@@ -917,7 +917,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
         it 'raises an cloud error' do
           expect {
             cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, { 'network_a' => dynamic_network_spec }, nil, environment)
-          }.to raise_error(Bosh::Clouds::CloudError, "You have reached your quota for members in a server group for project '#{cloud.huaweicloud.params[:openstack_tenant]}'. Please disable auto-anti-affinity server groups or increase your quota.")
+          }.to raise_error(Bosh::Clouds::CloudError, "You have reached your quota for members in a server group for project '#{cloud.huaweicloud.params[:huaweicloud_tenant]}'. Please disable auto-anti-affinity server groups or increase your quota.")
         end
       end
 

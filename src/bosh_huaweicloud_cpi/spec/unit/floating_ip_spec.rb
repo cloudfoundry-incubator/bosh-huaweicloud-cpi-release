@@ -8,7 +8,7 @@ describe Bosh::HuaweiCloud::FloatingIp do
   }
   let(:network) { double('network', get_server: nil, list_floating_ips: nil, associate_floating_ip: nil, disassociate_floating_ip: nil, get_port: nil, ports: nil) }
   let(:compute) { double('compute', addresses: nil) }
-  let(:huaweicloud) { double('openstack', use_nova_networking?: use_nova_networking, network: network, compute: compute) }
+  let(:huaweicloud) { double('huaweicloud', use_nova_networking?: use_nova_networking, network: network, compute: compute) }
 
   context 'when `use_nova_networking=false`' do
     let(:use_nova_networking) { false }
@@ -161,7 +161,7 @@ describe Bosh::HuaweiCloud::FloatingIp do
         end
       end
 
-      context "openstack doesn't find the given floating ip" do
+      context "huaweicloud doesn't find the given floating ip" do
         let(:floating_ips) { [] }
 
         it 'raises a cloud error' do
@@ -171,7 +171,7 @@ describe Bosh::HuaweiCloud::FloatingIp do
         end
       end
 
-      context 'openstack finds the given floating ip more than once' do
+      context 'huaweicloud finds the given floating ip more than once' do
         let(:floating_ips) { [{ 'floating_network_id' => 'id1' }, { 'floating_network_id' => 'id2' }] }
 
         it 'raises a cloud error' do

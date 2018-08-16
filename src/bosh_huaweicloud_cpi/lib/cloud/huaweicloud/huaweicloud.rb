@@ -90,7 +90,7 @@ module Bosh::HuaweiCloud
     end
 
     def project_name
-      is_v3 ? params[:openstack_project_name] : params[:openstack_tenant]
+      is_v3 ? params[:huaweicloud_project_name] : params[:huaweicloud_tenant]
     end
 
     def use_nova_networking?

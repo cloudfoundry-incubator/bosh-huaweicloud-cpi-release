@@ -51,7 +51,7 @@ describe Bosh::HuaweiCloud::Cloud do
           it 'raises an error if connection_options is not a Hash' do
             options['huaweicloud']['connection_options'] = 'connection_options'
 
-            expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
+            expect { subject }.to raise_error(ArgumentError, /Invalid HuaweiCloud cloud properties/)
           end
         end
 
@@ -65,7 +65,7 @@ describe Bosh::HuaweiCloud::Cloud do
           it 'raises an error if boot_from_volume is not a boolean' do
             options['huaweicloud']['boot_from_volume'] = 'boot_from_volume'
 
-            expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
+            expect { subject }.to raise_error(ArgumentError, /Invalid HuaweiCloud cloud properties/)
           end
         end
 
@@ -87,7 +87,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
           it 'raises an error if config_drive is not cdrom or disk or nil' do
             options['huaweicloud']['config_drive'] = 'incorrect-value'
-            expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
+            expect { subject }.to raise_error(ArgumentError, /Invalid HuaweiCloud cloud properties/)
           end
         end
       end
@@ -99,12 +99,12 @@ describe Bosh::HuaweiCloud::Cloud do
 
         it 'raises an error when no project is specified' do
           options['huaweicloud']['domain'] = 'fake_domain'
-          expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties: #<Membrane::SchemaValidationError: { huaweicloud => { project => Missing key } }/)
+          expect { subject }.to raise_error(ArgumentError, /Invalid HuaweiCloud cloud properties: #<Membrane::SchemaValidationError: { huaweicloud => { project => Missing key } }/)
         end
 
         it 'raises an error when no domain is specified' do
           options['huaweicloud']['project'] = 'fake_project'
-          expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties: #<Membrane::SchemaValidationError: { huaweicloud => { domain => Missing key } }/)
+          expect { subject }.to raise_error(ArgumentError, /Invalid HuaweiCloud cloud properties: #<Membrane::SchemaValidationError: { huaweicloud => { domain => Missing key } }/)
         end
 
         context 'when project and domain are specified' do
@@ -123,7 +123,7 @@ describe Bosh::HuaweiCloud::Cloud do
         let(:options) { Hash.new('options') }
 
         it 'raises ArgumentError' do
-          expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
+          expect { subject }.to raise_error(ArgumentError, /Invalid HuaweiCloud cloud properties/)
         end
       end
 
@@ -131,7 +131,7 @@ describe Bosh::HuaweiCloud::Cloud do
         let(:options) { 'this is a string' }
 
         it 'raises ArgumentError' do
-          expect { subject }.to raise_error(ArgumentError, /Invalid OpenStack cloud properties/)
+          expect { subject }.to raise_error(ArgumentError, /Invalid HuaweiCloud cloud properties/)
         end
       end
     end

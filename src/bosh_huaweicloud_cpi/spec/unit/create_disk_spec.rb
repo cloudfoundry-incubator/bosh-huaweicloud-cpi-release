@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Bosh::HuaweiCloud::Cloud do
-  describe 'connecting to the OpenStack Volume Service' do
+  describe 'connecting to the HuaweiCloud Volume Service' do
     it 'connects when creating a volume' do
       unique_name = SecureRandom.uuid
       disk_params = {
@@ -48,7 +48,7 @@ describe Bosh::HuaweiCloud::Cloud do
     expect(cloud.create_disk(2048, {})).to eq('v-foobar')
   end
 
-  it 'creates an OpenStack volume with the specified volume_type' do
+  it 'creates an HuaweiCloud volume with the specified volume_type' do
     unique_name = SecureRandom.uuid
     disk_params = {
       display_name: "volume-#{unique_name}",
@@ -71,7 +71,7 @@ describe Bosh::HuaweiCloud::Cloud do
     expect(cloud.create_disk(2048, 'type' => 'foo')).to eq('v-foobar')
   end
 
-  it 'creates an OpenStack volume with the default volume_type' do
+  it 'creates an HuaweiCloud volume with the default volume_type' do
     unique_name = SecureRandom.uuid
     disk_params = {
       display_name: "volume-#{unique_name}",

@@ -505,7 +505,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
         allow(server).to receive(:addresses).and_return('network_a' => [{ 'addr' => '10.20.20.20' }])
       end
 
-      it 'returns the IP address from the gateway network by calling OpenStack' do
+      it 'returns the IP address from the gateway network by calling HuaweiCloud' do
         expect(Bosh::HuaweiCloud::NetworkConfigurator.gateway_ip(network_spec, huaweicloud, server)).to eq('10.20.20.20')
         expect(server).to have_received(:addresses)
       end
@@ -613,7 +613,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
           }.to raise_error { |e|
             expect(e).to be_a(Bosh::Clouds::VMCreationFailed)
             expect(e.ok_to_retry).to be(false)
-            expect(e.message).to eq("Multiple manual networks can only be used with 'openstack.use_nova_networking=false'. Multiple networks require Neutron.")
+            expect(e.message).to eq("Multiple manual networks can only be used with 'huaweicloud.use_nova_networking=false'. Multiple networks require Neutron.")
           }
         end
       end
@@ -626,7 +626,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
             subject.check_preconditions(use_nova_networking, use_config_drive, use_dhcp)
           }.to raise_error { |e|
             expect(e).to be_a(Bosh::Clouds::VMCreationFailed)
-            expect(e.message).to eq("Multiple manual networks can only be used with 'openstack.use_dhcp=false' and 'openstack.config_drive=cdrom|disk'")
+            expect(e.message).to eq("Multiple manual networks can only be used with 'huaweicloud.use_dhcp=false' and 'huaweicloud.config_drive=cdrom|disk'")
           }
         end
       end
@@ -639,7 +639,7 @@ describe Bosh::HuaweiCloud::NetworkConfigurator do
             subject.check_preconditions(use_nova_networking, use_config_drive, use_dhcp)
           }.to raise_error { |e|
             expect(e).to be_a(Bosh::Clouds::VMCreationFailed)
-            expect(e.message).to eq("Multiple manual networks can only be used with 'openstack.use_dhcp=false' and 'openstack.config_drive=cdrom|disk'")
+            expect(e.message).to eq("Multiple manual networks can only be used with 'huaweicloud.use_dhcp=false' and 'huaweicloud.config_drive=cdrom|disk'")
           }
         end
       end

@@ -232,7 +232,7 @@ class LifecycleHelper
   def self.get_config(key, default = :none)
     env_file = ENV['LIFECYCLE_ENV_FILE']
     env_name = ENV['LIFECYCLE_ENV_NAME']
-    env_key = "BOSH_OPENSTACK_#{key.to_s.upcase}"
+    env_key = "BOSH_HUAWEICLOUD_#{key.to_s.upcase}"
 
     value = if env_file
               config = load_config_from_file(env_file, env_name)

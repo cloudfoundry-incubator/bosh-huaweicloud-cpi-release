@@ -20,9 +20,9 @@ describe Bosh::HuaweiCloud::Cloud do
       'director' => 'Director',
       'deployment' => 'deployment',
       'instance_id' => 'instance',
-      'job' => 'openstack_cpi_spec',
+      'job' => 'huaweicloud_cpi_spec',
       'instance_index' => '0',
-      'instance_name' => 'openstack_cpi_spec/instance',
+      'instance_name' => 'huaweicloud_cpi_spec/instance',
       'attached_at' => '2017-08-23T16:13:00Z',
     }
   end
@@ -30,7 +30,7 @@ describe Bosh::HuaweiCloud::Cloud do
   let(:disk_snapshot_metadata) do
     {
       deployment: 'deployment',
-      job: 'openstack_cpi_spec',
+      job: 'huaweicloud_cpi_spec',
       index: 0,
       instance_id: 'instance',
       agent_id: 'agent',
@@ -46,13 +46,13 @@ describe Bosh::HuaweiCloud::Cloud do
       'deployment' => 'deployment',
       'instance_id' => 'instance',
       'instance_index' => '0',
-      'instance_name' => 'openstack_cpi_spec/instance',
+      'instance_name' => 'huaweicloud_cpi_spec/instance',
       'agent_id' => 'agent',
     }
   end
 
   let(:cpi_for_vm) { @config.create_cpi }
-  let(:openstack) { @config.create_huaweicloud }
+  let(:huaweicloud) { @config.create_huaweicloud }
 
   let(:network_spec) do
     {
@@ -150,7 +150,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
     expect(cpi_for_volume.has_disk?(disk_id)).to be(true)
 
-    expect(openstack.volume.volumes.get(disk_id).volume_type).to eq(volume_type) unless volume_type.nil?
+    expect(huaweicloud.volume.volumes.get(disk_id).volume_type).to eq(volume_type) unless volume_type.nil?
 
     cpi_for_volume.attach_disk(vm_id, disk_id)
 

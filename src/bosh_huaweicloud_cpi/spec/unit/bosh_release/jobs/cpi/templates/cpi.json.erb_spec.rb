@@ -197,7 +197,7 @@ describe 'cpi.json.erb' do
 
       expect { subject }.to raise_error RuntimeError,
                                         "Property 'human_readable_vm_names' can only be used together with" \
-                                        " 'registry.endpoint'. Please refer to http://bosh.io/docs/openstack-registry.html."
+                                        " 'registry.endpoint'. Please refer to http://bosh.io/docs/huaweicloud-registry.html."
     end
 
     it 'template render succeeds if registry endpoint is set' do

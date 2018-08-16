@@ -16,7 +16,7 @@ describe Bosh::HuaweiCloud::Cloud, 'resize_disk' do
     allow(volume).to receive(:metadata).and_return(double('metadata'))
   end
 
-  it 'uses the OpenStack endpoint to resize a disk' do
+  it 'uses the HuaweiCloud endpoint to resize a disk' do
     allow(volume).to receive(:extend)
     allow(cloud.huaweicloud).to receive(:wait_resource).with(volume, :available)
 

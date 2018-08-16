@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Bosh::HuaweiCloud::Cloud do
-  it 'creates an OpenStack snapshot' do
+  it 'creates an HuaweiCloud snapshot' do
     unique_name = SecureRandom.uuid
     volume = double('volume', id: 'v-foobar')
     attachment = { 'device' => '/dev/vdc' }
@@ -43,7 +43,7 @@ describe Bosh::HuaweiCloud::Cloud do
   context "when volume doesn't have any attachment" do
     let(:volume) { double('volume', id: 'v-foobar', attachments: [{}]) }
 
-    it 'creates an OpenStack snapshot' do
+    it 'creates an HuaweiCloud snapshot' do
       unique_name = SecureRandom.uuid
       snapshot = double('snapshot', id: 'snap-foobar', update_metadata: nil)
       snapshot_params = {
@@ -117,7 +117,7 @@ describe Bosh::HuaweiCloud::Cloud do
     expect(cloud.snapshot_disk('v-foobar', metadata)).to eq('snap-foobar')
   end
 
-  it 'should raise an Exception if OpenStack volume is not found' do
+  it 'should raise an Exception if HuaweiCloud volume is not found' do
     cloud = mock_cloud do |fog|
       expect(fog.volume.volumes).to receive(:get).with('v-foobar').and_return(nil)
     end

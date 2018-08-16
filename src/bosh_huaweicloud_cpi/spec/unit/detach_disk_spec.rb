@@ -8,7 +8,7 @@ describe Bosh::HuaweiCloud::Cloud do
     @registry = mock_registry
   end
 
-  it 'detaches an OpenStack volume from a server' do
+  it 'detaches an HuaweiCloud volume from a server' do
     volume = double('volume', id: 'v-foobar')
     volume_attachments = [{ 'id' => 'a1', 'volumeId' => 'v-foobar' }, { 'id' => 'a2', 'volumeId' => 'v-barfoo' }]
 

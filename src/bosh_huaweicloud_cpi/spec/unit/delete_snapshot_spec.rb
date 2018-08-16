@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Bosh::HuaweiCloud::Cloud do
-  it 'deletes an OpenStack snapshot' do
+  it 'deletes an HuaweiCloud snapshot' do
     snapshot = double('snapshot', id: 'snap-foobar')
 
     cloud = mock_cloud do |fog|
@@ -15,7 +15,7 @@ describe Bosh::HuaweiCloud::Cloud do
     cloud.delete_snapshot('snap-foobar')
   end
 
-  it "doesn't delete an OpenStack snapshot unless its state is `available'" do
+  it "doesn't delete an HuaweiCloud snapshot unless its state is `available'" do
     snapshot = double('snapshot', id: 'snap-foobar')
 
     cloud = mock_cloud do |fog|

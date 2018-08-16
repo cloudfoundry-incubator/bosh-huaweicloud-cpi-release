@@ -1,6 +1,6 @@
 module Bosh::HuaweiCloud
   ##
-  # Represents OpenStack dynamic network: where IaaS sets VM's IP
+  # Represents HuaweiCloud dynamic network: where IaaS sets VM's IP
   class DynamicNetwork < PrivateNetwork
     ##
     # Creates a new dynamic network

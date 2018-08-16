@@ -17,11 +17,11 @@ module Bosh::HuaweiCloud
 
     def add_vm_to_pool(server, network_spec, pool_spec)
       validate_configuration(pool_spec)
-      openstack_pool_id = huaweicloud_pool_id(pool_spec['name'])
+      huaweicloud_pool_id = huaweicloud_pool_id(pool_spec['name'])
       ip = NetworkConfigurator.gateway_ip(network_spec, @huaweicloud, server)
       subnet_id = matching_subnet_id(network_spec, ip)
-      membership_id = create_membership(openstack_pool_id, ip, pool_spec['port'], subnet_id)
-      LoadbalancerPoolMembership.new(pool_spec['name'], pool_spec['port'], openstack_pool_id, membership_id)
+      membership_id = create_membership(huaweicloud_pool_id, ip, pool_spec['port'], subnet_id)
+      LoadbalancerPoolMembership.new(pool_spec['name'], pool_spec['port'], huaweicloud_pool_id, membership_id)
     rescue Bosh::Clouds::VMCreationFailed => e
       message = "VM with id '#{server.id}' cannot be attached to load balancer pool '#{pool_spec['name']}'. Reason: #{e.message}"
       raise Bosh::Clouds::VMCreationFailed.new(false), message

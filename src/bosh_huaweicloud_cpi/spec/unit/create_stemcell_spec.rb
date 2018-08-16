@@ -400,7 +400,7 @@ describe Bosh::HuaweiCloud::Cloud do
         expect(stemcell_id).to eq('image_id light')
       end
 
-      it 'checks if image with id exists in OpenStack' do
+      it 'checks if image with id exists in HuaweiCloud' do
         cloud_properties = {
           'image_id' => 'image_id',
         }
@@ -410,7 +410,7 @@ describe Bosh::HuaweiCloud::Cloud do
         expect(images).to have_received(:get).with('image_id')
       end
 
-      context 'when image with given id does not exist in OpenStack' do
+      context 'when image with given id does not exist in HuaweiCloud' do
         let(:images) { double('images', get: nil) }
 
         it 'raises a cloud error' do
@@ -420,7 +420,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
           expect {
             @cloud.create_stemcell('/tmp/foo', cloud_properties)
-          }.to raise_error(Bosh::Clouds::CloudError, 'No active image with id \'non_existing_image_id\' referenced by light stemcell found in OpenStack.')
+          }.to raise_error(Bosh::Clouds::CloudError, 'No active image with id \'non_existing_image_id\' referenced by light stemcell found in HuaweiCloud.')
         end
       end
 
@@ -434,7 +434,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
           expect {
             @cloud.create_stemcell('/tmp/foo', cloud_properties)
-          }.to raise_error(Bosh::Clouds::CloudError, 'No active image with id \'image_id\' referenced by light stemcell found in OpenStack.')
+          }.to raise_error(Bosh::Clouds::CloudError, 'No active image with id \'image_id\' referenced by light stemcell found in HuaweiCloud.')
         end
       end
     end

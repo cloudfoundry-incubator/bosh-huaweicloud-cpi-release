@@ -53,7 +53,7 @@ describe Bosh::HuaweiCloud::AvailabilityZoneProvider do
       it 'raises an error if az list is given and ignore_server_availability_zone is false' do
         expect {
           az_provider.use_multiple_azs?(multiple_azs_cloud_properties)
-        }.to raise_error(Bosh::Clouds::CloudError, 'Cannot use multiple azs without openstack.ignore_server_availability_zone')
+        }.to raise_error(Bosh::Clouds::CloudError, 'Cannot use multiple azs without huaweicloud.ignore_server_availability_zone')
       end
     end
 
@@ -103,7 +103,7 @@ describe Bosh::HuaweiCloud::AvailabilityZoneProvider do
         it 'should raise an error' do
           expect {
             az_provider.select(%w[foo_id bar_id], nil)
-          }.to raise_error Bosh::Clouds::CloudError, "can't use multiple availability zones: VM is created in default AZ, disk 'foo_id' is in AZ 'west_az', disk 'bar_id' is in AZ 'east_az'. Enable 'openstack.ignore_server_availability_zone' to allow VMs and disks to be in different AZs, or use the same AZ for both."
+          }.to raise_error Bosh::Clouds::CloudError, "can't use multiple availability zones: VM is created in default AZ, disk 'foo_id' is in AZ 'west_az', disk 'bar_id' is in AZ 'east_az'. Enable 'huaweicloud.ignore_server_availability_zone' to allow VMs and disks to be in different AZs, or use the same AZ for both."
         end
       end
 
@@ -126,7 +126,7 @@ describe Bosh::HuaweiCloud::AvailabilityZoneProvider do
         it 'should raise an error' do
           expect {
             az_provider.select(%w[foo_id bar_id], 'west_az')
-          }.to raise_error Bosh::Clouds::CloudError, "can't use multiple availability zones: VM is created in AZ 'west_az', disk 'foo_id' is in AZ 'west_az', disk 'bar_id' is in AZ 'east_az'. Enable 'openstack.ignore_server_availability_zone' to allow VMs and disks to be in different AZs, or use the same AZ for both."
+          }.to raise_error Bosh::Clouds::CloudError, "can't use multiple availability zones: VM is created in AZ 'west_az', disk 'foo_id' is in AZ 'west_az', disk 'bar_id' is in AZ 'east_az'. Enable 'huaweicloud.ignore_server_availability_zone' to allow VMs and disks to be in different AZs, or use the same AZ for both."
         end
       end
 
@@ -138,7 +138,7 @@ describe Bosh::HuaweiCloud::AvailabilityZoneProvider do
         it 'should raise an error' do
           expect {
             az_provider.select(%w[foo_id bar_id], 'south_az')
-          }.to raise_error Bosh::Clouds::CloudError, "can't use multiple availability zones: VM is created in AZ 'south_az', disk 'foo_id' is in AZ 'west_az', disk 'bar_id' is in AZ 'west_az'. Enable 'openstack.ignore_server_availability_zone' to allow VMs and disks to be in different AZs, or use the same AZ for both."
+          }.to raise_error Bosh::Clouds::CloudError, "can't use multiple availability zones: VM is created in AZ 'south_az', disk 'foo_id' is in AZ 'west_az', disk 'bar_id' is in AZ 'west_az'. Enable 'huaweicloud.ignore_server_availability_zone' to allow VMs and disks to be in different AZs, or use the same AZ for both."
         end
       end
 
@@ -150,7 +150,7 @@ describe Bosh::HuaweiCloud::AvailabilityZoneProvider do
         it 'should raise an error' do
           expect {
             az_provider.select(%w[foo_id bar_id], 'south_az')
-          }.to raise_error Bosh::Clouds::CloudError, "can't use multiple availability zones: VM is created in AZ 'south_az', disk 'foo_id' is in AZ 'west_az', disk 'bar_id' is in AZ 'east_az'. Enable 'openstack.ignore_server_availability_zone' to allow VMs and disks to be in different AZs, or use the same AZ for both."
+          }.to raise_error Bosh::Clouds::CloudError, "can't use multiple availability zones: VM is created in AZ 'south_az', disk 'foo_id' is in AZ 'west_az', disk 'bar_id' is in AZ 'east_az'. Enable 'huaweicloud.ignore_server_availability_zone' to allow VMs and disks to be in different AZs, or use the same AZ for both."
         end
       end
 

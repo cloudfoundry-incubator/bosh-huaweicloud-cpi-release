@@ -39,7 +39,7 @@ module Bosh::HuaweiCloud
       @logger.info("Checking for image with id '#{image_id}' referenced by light stemcell")
       image = @huaweicloud.image.images.get(image_id)
       if !image || image.status != 'active'
-        cloud_error("No active image with id '#{image_id}' referenced by light stemcell found in OpenStack.")
+        cloud_error("No active image with id '#{image_id}' referenced by light stemcell found in HuaweiCloud.")
       end
 
       LightStemcell.new(@logger, @huaweicloud, image.id)
@@ -80,7 +80,7 @@ module Bosh::HuaweiCloud
       raise e
     end
 
-    def create_openstack_image(image_params)
+    def create_huaweicloud_image(image_params)
       @logger.debug("Using image parms: `#{image_params.inspect}'")
       @huaweicloud.with_huaweicloud { @huaweicloud.image.images.create(image_params) }
     end
@@ -135,7 +135,7 @@ module Bosh::HuaweiCloud
 
     def upload(image_params, image_location)
       image_params[:location] = image_location
-      create_openstack_image(image_params)
+      create_huaweicloud_image(image_params)
     end
   end
 
@@ -157,7 +157,7 @@ module Bosh::HuaweiCloud
     end
 
     def upload(image_params, image_location)
-      image = create_openstack_image(image_params)
+      image = create_huaweicloud_image(image_params)
       @huaweicloud.wait_resource(image, :queued)
       @logger.info("Performing file upload for image: '#{image.id}'...")
       image.upload_data(File.open(image_location, 'rb'))

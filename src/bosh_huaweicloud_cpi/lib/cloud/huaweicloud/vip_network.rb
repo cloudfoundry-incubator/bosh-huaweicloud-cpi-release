@@ -1,7 +1,7 @@
 module Bosh::HuaweiCloud
   ##
-  # Represents OpenStack vip network: where users sets VM's IP (floating IP's
-  # in OpenStack)
+  # Represents HuaweiCloud vip network: where users sets VM's IP (floating IP's
+  # in HuaweiCloud)
   class VipNetwork < Network
     ##
     # Creates a new vip network
@@ -13,10 +13,10 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Configures OpenStack vip network
+    # Configures HuaweiCloud vip network
     #
     # @param [Bosh::HuaweiCloud::Huawei] huaweicloud
-    # @param [Fog::Compute::HuaweiCloud::Server] server OpenStack server to
+    # @param [Fog::Compute::HuaweiCloud::Server] server HuaweiCloud server to
     #   configure
     def configure(huaweicloud, server, network_id)
       cloud_error("No IP provided for vip network `#{@name}'") if @ip.nil?

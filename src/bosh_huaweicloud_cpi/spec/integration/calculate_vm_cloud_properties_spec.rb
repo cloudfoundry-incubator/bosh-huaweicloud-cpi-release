@@ -19,7 +19,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
   let(:boot_from_volume) { false }
 
-  it 'maps cloud agnostic VM properties to OpenStack-specific cloud_properties' do
+  it 'maps cloud agnostic VM properties to HuaweiCloud-specific cloud_properties' do
     cloud_props = cpi_for_cloud_props.calculate_vm_cloud_properties(
       'ram' => 512,
       'cpu' => 1,

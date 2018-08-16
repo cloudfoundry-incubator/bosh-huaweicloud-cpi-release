@@ -10,7 +10,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
   let(:logger) { @config.logger }
   let(:cpi_for_cloud_props) { IntegrationConfig.new.create_cpi }
-  let(:server_groups) { Bosh::HuaweiCloud::ServerGroups.new(cpi_for_cloud_props.openstack) }
+  let(:server_groups) { Bosh::HuaweiCloud::ServerGroups.new(cpi_for_cloud_props.huaweicloud) }
 
   before(:each) do
     delegate = double('delegate', logger: logger)
