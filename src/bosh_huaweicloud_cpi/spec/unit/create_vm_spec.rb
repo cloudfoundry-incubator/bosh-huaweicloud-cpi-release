@@ -149,7 +149,7 @@ describe Bosh::HuaweiCloud::Cloud, 'create_vm' do
       cloud.create_vm('agent-id', 'sc-id', resource_pool_spec, network_spec, nil, environment)
 
       expect(cloud.compute.servers).to have_received(:create).with(huaweicloud_params(expected_network_spec).merge(
-          config_drive: true, nics:[{"subnet_id"=>"net","fixed_ip"=>"10.0.0.1"}]))
+          config_drive: true, nics:[{"subnet_id"=>"net","v4_fixed_ip"=>"10.0.0.1"}]))
     end
   end
 
