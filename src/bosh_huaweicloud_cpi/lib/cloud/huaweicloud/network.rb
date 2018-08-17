@@ -1,6 +1,6 @@
 module Bosh::HuaweiCloud
   ##
-  # Represents OpenStack network.
+  # Represents HuaweiCloud network.
   class Network
     include Helpers
 
@@ -25,7 +25,7 @@ module Bosh::HuaweiCloud
     # Configures given server
     #
     # @param [Bosh::HuaweiCloud::Huawei] huaweicloud
-    # @param [Fog::Compute::HuaweiCloud::Server] server OpenStack server to configure
+    # @param [Fog::Compute::HuaweiCloud::Server] server HuaweiCloud server to configure
     def configure(huaweicloud, server); end
 
     def prepare(huaweicloud, security_groups); end

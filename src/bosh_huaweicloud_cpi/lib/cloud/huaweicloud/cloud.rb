@@ -1,6 +1,6 @@
 module Bosh::HuaweiCloud
   ##
-  # BOSH OpenStack CPI
+  # BOSH HuaweiCloud CPI
   class Cloud < Bosh::Cloud
     include Helpers
 
@@ -16,7 +16,7 @@ module Bosh::HuaweiCloud
     attr_accessor :logger
 
     ##
-    # Creates a new BOSH OpenStack CPI
+    # Creates a new BOSH HuaweiCloud CPI
     #
     # @param [Hash] options CPI options
     # @option options [Hash] huaweicloud HuaweiCloud specific options
@@ -31,23 +31,23 @@ module Bosh::HuaweiCloud
       @logger = Bosh::Clouds::Config.logger
 
       @agent_properties = @options.fetch('agent', {})
-      openstack_properties = @options['huaweicloud']
-      @default_key_name = openstack_properties['default_key_name']
-      @default_security_groups = openstack_properties['default_security_groups']
-      @default_volume_type = openstack_properties['default_volume_type']
-      @stemcell_public_visibility = openstack_properties['stemcell_public_visibility']
-      @boot_from_volume = openstack_properties['boot_from_volume']
-      @use_dhcp = openstack_properties['use_dhcp']
-      @human_readable_vm_names = openstack_properties['human_readable_vm_names']
-      @enable_auto_anti_affinity = openstack_properties['enable_auto_anti_affinity']
-      @use_config_drive = !!openstack_properties.fetch('config_drive', false)
-      @config_drive = openstack_properties['config_drive']
+      huaweicloud_properties = @options['huaweicloud']
+      @default_key_name = huaweicloud_properties['default_key_name']
+      @default_security_groups = huaweicloud_properties['default_security_groups']
+      @default_volume_type = huaweicloud_properties['default_volume_type']
+      @stemcell_public_visibility = huaweicloud_properties['stemcell_public_visibility']
+      @boot_from_volume = huaweicloud_properties['boot_from_volume']
+      @use_dhcp = huaweicloud_properties['use_dhcp']
+      @human_readable_vm_names = huaweicloud_properties['human_readable_vm_names']
+      @enable_auto_anti_affinity = huaweicloud_properties['enable_auto_anti_affinity']
+      @use_config_drive = !!huaweicloud_properties.fetch('config_drive', false)
+      @config_drive = huaweicloud_properties['config_drive']
 
       @huaweicloud = Bosh::HuaweiCloud::Huawei.new(@options['huaweicloud'])
 
       @az_provider = Bosh::HuaweiCloud::AvailabilityZoneProvider.new(
       @huaweicloud,
-        openstack_properties['ignore_server_availability_zone'],
+        huaweicloud_properties['ignore_server_availability_zone'],
       )
 
       @metadata_lock = Mutex.new
@@ -76,8 +76,8 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Creates a new OpenStack Image using stemcell image. It requires access
-    # to the OpenStack Glance service.
+    # Creates a new HuaweiCloud Image using stemcell image. It requires access
+    # to the HuaweiCloud Glance service.
     #
     # @param [String] image_path Local filesystem path to a stemcell image
     # @param [Hash] cloud_properties CPI-specific properties
@@ -90,7 +90,7 @@ module Bosh::HuaweiCloud
     #   kernel image file provided at the stemcell archive
     # @option cloud_properties [optional, String] ramdisk_file Name of the
     #   ramdisk image file provided at the stemcell archive
-    # @return [String] OpenStack image UUID of the stemcell
+    # @return [String] HuaweiCloud image UUID of the stemcell
     def create_stemcell(image_path, cloud_properties)
       with_thread_name("create_stemcell(#{image_path}...)") do
         stemcell_creator = StemcellCreator.new(@logger, @huaweicloud, cloud_properties)
@@ -102,7 +102,7 @@ module Bosh::HuaweiCloud
     ##
     # Deletes a stemcell
     #
-    # @param [String] stemcell_id OpenStack image UUID of the stemcell to be
+    # @param [String] stemcell_id HuaweiCloud image UUID of the stemcell to be
     #   deleted
     # @return [void]
     def delete_stemcell(stemcell_id)
@@ -115,11 +115,11 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Creates an OpenStack server and waits until it's in running state
+    # Creates an HuaweiCloud server and waits until it's in running state
     #
     # @param [String] agent_id UUID for the agent that will be used later on by
     #   the director to locate and talk to the agent
-    # @param [String] stemcell_id OpenStack image UUID that will be used to
+    # @param [String] stemcell_id HuaweiCloud image UUID that will be used to
     #   power on new server
     # @param [Hash] cloud_properties cloud specific properties describing the
     #   resources needed for this VM
@@ -130,7 +130,7 @@ module Bosh::HuaweiCloud
     #   hint (i.e. server will only be created if resource pool availability
     #   zone is the same as disk availability zone)
     # @param [optional, Hash] environment Data to be merged into agent settings
-    # @return [String] OpenStack server UUID
+    # @return [String] HuaweiCloud server UUID
     def create_vm(agent_id, stemcell_id, cloud_properties,
                   network_spec = nil, disk_locality = nil, environment = nil)
       with_thread_name("create_vm(#{agent_id}, ...)") do
@@ -144,23 +144,23 @@ module Bosh::HuaweiCloud
         }
         server = Server.new(@agent_properties, @human_readable_vm_names, @logger, @huaweicloud, @registry, @use_dhcp)
 
-        openstack_properties = OpenStruct.new(
+        huaweicloud_properties = OpenStruct.new(
           boot_from_volume: @boot_from_volume,
           default_key_name: @default_key_name,
           enable_auto_anti_affinity: @enable_auto_anti_affinity,
           default_security_groups: @default_security_groups,
         )
 
-        vm_factory = VmFactory.new(@huaweicloud, server, create_vm_params, disk_locality, @az_provider, openstack_properties)
+        vm_factory = VmFactory.new(@huaweicloud, server, create_vm_params, disk_locality, @az_provider, huaweicloud_properties)
         network_configurator = NetworkConfigurator.new(network_spec, cloud_properties['allowed_address_pairs'])
         vm_factory.create_vm(network_configurator, agent_id, environment, stemcell_id, cloud_properties)
       end
     end
 
     ##
-    # Terminates an OpenStack server and waits until it reports as terminated
+    # Terminates an HuaweiCloud server and waits until it reports as terminated
     #
-    # @param [String] server_id OpenStack server UUID
+    # @param [String] server_id HuaweiCloud server UUID
     # @return [void]
     def delete_vm(server_id)
       with_thread_name("delete_vm(#{server_id})") do
@@ -177,9 +177,9 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Checks if an OpenStack server exists
+    # Checks if an HuaweiCloud server exists
     #
-    # @param [String] server_id OpenStack server UUID
+    # @param [String] server_id HuaweiCloud server UUID
     # @return [Boolean] True if the vm exists
     def has_vm?(server_id)
       with_thread_name("has_vm?(#{server_id})") do
@@ -189,9 +189,9 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Reboots an OpenStack Server
+    # Reboots an HuaweiCloud Server
     #
-    # @param [String] server_id OpenStack server UUID
+    # @param [String] server_id HuaweiCloud server UUID
     # @return [void]
     def reboot_vm(server_id)
       with_thread_name("reboot_vm(#{server_id})") do
@@ -203,9 +203,9 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Configures networking on existing OpenStack server
+    # Configures networking on existing HuaweiCloud server
     #
-    # @param [String] server_id OpenStack server UUID
+    # @param [String] server_id HuaweiCloud server UUID
     # @param [Hash] network_spec Raw network spec passed by director
     # @return [void]
     # @raise [Bosh::Clouds:NotSupported] If there's a network change that requires the recreation of the VM
@@ -217,12 +217,12 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Creates a new OpenStack volume
+    # Creates a new HuaweiCloud volume
     #
     # @param [Integer] size disk size in MiB
-    # @param [optional, String] server_id OpenStack server UUID of the VM that
+    # @param [optional, String] server_id HuaweiCloud server UUID of the VM that
     #   this disk will be attached to
-    # @return [String] OpenStack volume UUID
+    # @return [String] HuaweiCloud volume UUID
     def create_disk(size, cloud_properties, server_id = nil)
       volume_service_client = @huaweicloud.volume
       with_thread_name("create_disk(#{size}, #{cloud_properties}, #{server_id})") do
@@ -262,9 +262,9 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Check whether an OpenStack volume exists or not
+    # Check whether an HuaweiCloud volume exists or not
     #
-    # @param [String] disk_id OpenStack volume UUID
+    # @param [String] disk_id HuaweiCloud volume UUID
     # @return [bool] whether the specific disk is there or not
     def has_disk?(disk_id)
       with_thread_name("has_disk?(#{disk_id})") do
@@ -276,9 +276,9 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Deletes an OpenStack volume
+    # Deletes an HuaweiCloud volume
     #
-    # @param [String] disk_id OpenStack volume UUID
+    # @param [String] disk_id HuaweiCloud volume UUID
     # @return [void]
     # @raise [Bosh::Clouds::CloudError] if disk is not in available state
     def delete_disk(disk_id)
@@ -298,10 +298,10 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Attaches an OpenStack volume to an OpenStack server
+    # Attaches an HuaweiCloud volume to an HuaweiCloud server
     #
-    # @param [String] server_id OpenStack server UUID
-    # @param [String] disk_id OpenStack volume UUID
+    # @param [String] server_id HuaweiCloud server UUID
+    # @param [String] disk_id HuaweiCloud volume UUID
     # @return [void]
     def attach_disk(server_id, disk_id)
       with_thread_name("attach_disk(#{server_id}, #{disk_id})") do
@@ -322,10 +322,10 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Detaches an OpenStack volume from an OpenStack server
+    # Detaches an HuaweiCloud volume from an HuaweiCloud server
     #
-    # @param [String] server_id OpenStack server UUID
-    # @param [String] disk_id OpenStack volume UUID
+    # @param [String] server_id HuaweiCloud server UUID
+    # @param [String] disk_id HuaweiCloud volume UUID
     # @return [void]
     def detach_disk(server_id, disk_id)
       with_thread_name("detach_disk(#{server_id}, #{disk_id})") do
@@ -348,11 +348,11 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Takes a snapshot of an OpenStack volume
+    # Takes a snapshot of an HuaweiCloud volume
     #
-    # @param [String] disk_id OpenStack volume UUID
+    # @param [String] disk_id HuaweiCloud volume UUID
     # @param [Hash] metadata Metadata key/value pairs to add to snapshot
-    # @return [String] OpenStack snapshot UUID
+    # @return [String] HuaweiCloud snapshot UUID
     # @raise [Bosh::Clouds::CloudError] if volume is not found
     def snapshot_disk(disk_id, metadata)
       with_thread_name("snapshot_disk(#{disk_id})") do
@@ -406,9 +406,9 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Deletes an OpenStack volume snapshot
+    # Deletes an HuaweiCloud volume snapshot
     #
-    # @param [String] snapshot_id OpenStack snapshot UUID
+    # @param [String] snapshot_id HuaweiCloud snapshot UUID
     # @return [void]
     # @raise [Bosh::Clouds::CloudError] if snapshot is not in available state
     def delete_snapshot(snapshot_id)
@@ -428,9 +428,9 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Set metadata for an OpenStack server
+    # Set metadata for an HuaweiCloud server
     #
-    # @param [String] server_id OpenStack server UUID
+    # @param [String] server_id HuaweiCloud server UUID
     # @param [Hash] metadata Metadata key/value pairs
     # @return [void]
     def set_vm_metadata(server_id, metadata)
@@ -464,9 +464,9 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Set metadata for an OpenStack disk
+    # Set metadata for an HuaweiCloud disk
     #
-    # @param [String] disk_id OpenStack disk UUID
+    # @param [String] disk_id HuaweiCloud disk UUID
     # @param [Hash] metadata Metadata key/value pairs
     # @return [void]
     def set_disk_metadata(disk_id, metadata)
@@ -480,9 +480,9 @@ module Bosh::HuaweiCloud
     end
 
     # Map a set of cloud agnostic VM properties (cpu, ram, ephemeral_disk_size) to
-    # a set of OpenStack specific cloud_properties
+    # a set of HuaweiCloud specific cloud_properties
     # @param [Hash] requirements requested cpu, ram, and ephemeral_disk_size
-    # @return [Hash] OpenStack specific cloud_properties describing instance (e.g. instance_type)
+    # @return [Hash] HuaweiCloud specific cloud_properties describing instance (e.g. instance_type)
     def calculate_vm_cloud_properties(requirements)
       required_keys = %w[cpu ram ephemeral_disk_size]
       missing_keys = required_keys.reject { |key| requirements[key] }
@@ -505,7 +505,7 @@ module Bosh::HuaweiCloud
     ##
     # Updates the agent settings
     #
-    # @param [Fog::Compute::HuaweiCloud::Server] server OpenStack server
+    # @param [Fog::Compute::HuaweiCloud::Server] server HuaweiCloud server
     def update_agent_settings(server)
       raise ArgumentError, 'Block is not provided' unless block_given?
       registry_key = registry_key_for(server)
@@ -515,14 +515,14 @@ module Bosh::HuaweiCloud
       @registry.update_settings(registry_key, settings)
     end
 
-    # Information about Openstack CPI, currently supported stemcell formats
-    # @return [Hash] Openstack CPI properties
+    # Information about HuaweiCloud CPI, currently supported stemcell formats
+    # @return [Hash] HuaweiCloud CPI properties
     def info
       { 'stemcell_formats' => ['openstack-raw', 'openstack-qcow2', 'openstack-light'] }
     end
 
     ##
-    # Resizes an existing OpenStack volume
+    # Resizes an existing HuaweiCloud volume
     #
     # @param [String] disk_id volume Cloud ID
     # @param [Integer] new_size disk size in MiB
@@ -573,9 +573,9 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Soft reboots an OpenStack server
+    # Soft reboots an HuaweiCloud server
     #
-    # @param [Fog::Compute::HuaweiCloud::Server] server OpenStack server
+    # @param [Fog::Compute::HuaweiCloud::Server] server HuaweiCloud server
     # @return [void]
     def soft_reboot(server)
       @logger.info("Soft rebooting server `#{server.id}'...")
@@ -584,9 +584,9 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Hard reboots an OpenStack server
+    # Hard reboots an HuaweiCloud server
     #
-    # @param [Fog::Compute::HuaweiCloud::Server] server OpenStack server
+    # @param [Fog::Compute::HuaweiCloud::Server] server HuaweiCloud server
     # @return [void]
     def hard_reboot(server)
       @logger.info("Hard rebooting server `#{server.id}'...")
@@ -595,10 +595,10 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Attaches an OpenStack volume to an OpenStack server
+    # Attaches an HuaweiCloud volume to an HuaweiCloud server
     #
-    # @param [Fog::Compute::HuaweiCloud::Server] server OpenStack server
-    # @param [Fog::Compute::HuaweiCloud::Volume] volume OpenStack volume
+    # @param [Fog::Compute::HuaweiCloud::Server] server HuaweiCloud server
+    # @param [Fog::Compute::HuaweiCloud::Volume] volume HuaweiCloud volume
     # @return [String] Device name
     def attach_volume(server, volume)
       @logger.info("Attaching volume `#{volume.id}' to server `#{server.id}'...")
@@ -641,7 +641,7 @@ module Bosh::HuaweiCloud
     ##
     # Returns the first letter to be used on device names
     #
-    # @param [Fog::Compute::HuaweiCloud::Server] server OpenStack server
+    # @param [Fog::Compute::HuaweiCloud::Server] server HuaweiCloud server
     # @return [String] First available letter
     def first_device_name_letter(server)
       letter = FIRST_DEVICE_NAME_LETTER.dup
@@ -657,10 +657,10 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Detaches an OpenStack volume from an OpenStack server
+    # Detaches an HuaweiCloud volume from an HuaweiCloud server
     #
-    # @param [Fog::Compute::HuaweiCloud::Server] server OpenStack server
-    # @param [Fog::Compute::HuaweiCloud::Volume] volume OpenStack volume
+    # @param [Fog::Compute::HuaweiCloud::Server] server HuaweiCloud server
+    # @param [Fog::Compute::HuaweiCloud::Volume] volume HuaweiCloud volume
     # @return [void]
     def detach_volume(server, volume)
       @logger.info("Detaching volume `#{volume.id}' from `#{server.id}'...")
@@ -675,18 +675,18 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Checks if the OpenStack flavor has ephemeral disk
+    # Checks if the HuaweiCloud flavor has ephemeral disk
     #
-    # @param [Fog::Compute::HuaweiCloud::Flavor] OpenStack flavor
+    # @param [Fog::Compute::HuaweiCloud::Flavor] HuaweiCloud flavor
     # @return [Boolean] true if flavor has ephemeral disk, false otherwise
     def flavor_has_ephemeral_disk?(flavor)
       flavor.ephemeral && flavor.ephemeral.to_i > 0
     end
 
     ##
-    # Checks if the OpenStack flavor has swap disk
+    # Checks if the HuaweiCloud flavor has swap disk
     #
-    # @param [Fog::Compute::HuaweiCloud::Flavor] OpenStack flavor
+    # @param [Fog::Compute::HuaweiCloud::Flavor] HuaweiCloud flavor
     # @return [Boolean] true if flavor has swap disk, false otherwise
     def flavor_has_swap_disk?(flavor)
       flavor.swap.nil? || flavor.swap.to_i <= 0 ? false : true
@@ -699,10 +699,10 @@ module Bosh::HuaweiCloud
     # @return [void]
     # @raise [ArgumentError] if options are not valid
     def validate_options
-      raise ArgumentError, "Invalid OpenStack cloud properties: No 'huaweicloud' properties specified #{@options}." unless @options['huaweicloud']
+      raise ArgumentError, "Invalid HuaweiCloud cloud properties: No 'huaweicloud' properties specified #{@options}." unless @options['huaweicloud']
       auth_url = @options['huaweicloud']['auth_url']
       schema = Membrane::SchemaParser.parse do
-        openstack_options_schema = {
+        huaweicloud_options_schema = {
           'huaweicloud' => {
             'auth_url' => String,
             'username' => String,
@@ -730,17 +730,17 @@ module Bosh::HuaweiCloud
           optional('agent') => Hash,
         }
         if Bosh::HuaweiCloud::Huawei.is_v3(auth_url)
-          openstack_options_schema['huaweicloud']['project'] = String
-          openstack_options_schema['huaweicloud']['domain'] = String
+          huaweicloud_options_schema['huaweicloud']['project'] = String
+          huaweicloud_options_schema['huaweicloud']['domain'] = String
         else
-          openstack_options_schema['huaweicloud']['tenant'] = String
-          openstack_options_schema['huaweicloud'][optional('domain')] = String
+          huaweicloud_options_schema['huaweicloud']['tenant'] = String
+          huaweicloud_options_schema['huaweicloud'][optional('domain')] = String
         end
-        openstack_options_schema
+        huaweicloud_options_schema
       end
       schema.validate(@options)
     rescue Membrane::SchemaValidationError => e
-      raise ArgumentError, "Invalid OpenStack cloud properties: #{e.inspect}"
+      raise ArgumentError, "Invalid HuaweiCloud cloud properties: #{e.inspect}"
     end
 
     def initialize_registry
@@ -755,7 +755,7 @@ module Bosh::HuaweiCloud
     end
 
     def normalize_options(options)
-      raise ArgumentError, "Invalid OpenStack cloud properties: Hash expected, received #{options}" unless options.is_a?(Hash)
+      raise ArgumentError, "Invalid HuaweiCloud cloud properties: Hash expected, received #{options}" unless options.is_a?(Hash)
       # we only care about two top-level fields
       options = hash_filter(options.dup) { |key| OPTION_KEYS.include?(key) }
       # nil values should be treated the same as missing keys (makes validating optional fields easier)

@@ -25,14 +25,14 @@ describe Bosh::HuaweiCloud::Cloud do
 
     after do
       cpi_for_stemcell.delete_stemcell(@stemcell_id) if @stemcell_id
-      openstack.wait_resource(@image, :deleted, :status, true) if @image
+      huaweicloud.wait_resource(@image, :deleted, :status, true) if @image
     end
 
     it 'uploads and deletes a stemcell' do
       @stemcell_id, stemcell_manifest = upload_stemcell(cpi_for_stemcell, @config.stemcell_path)
       expect(@stemcell_id).to_not be_nil
 
-      @image = openstack.image.images.get(@stemcell_id)
+      @image = huaweicloud.image.images.get(@stemcell_id)
       expect(@image).to_not be_nil
       expect(@image.name).to eq("#{stemcell_manifest['cloud_properties']['name']}/#{stemcell_manifest['cloud_properties']['version']}")
       expect(@image.visibility).to eq('private')
@@ -59,7 +59,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
     after do
       cpi_for_stemcell.delete_stemcell(@stemcell_id) if @stemcell_id
-      openstack.wait_resource(@image, :deleted, :status, true) if @image
+      huaweicloud.wait_resource(@image, :deleted, :status, true) if @image
     end
 
     it 'uploads and deletes a stemcell' do
@@ -68,7 +68,7 @@ describe Bosh::HuaweiCloud::Cloud do
       @stemcell_id, stemcell_manifest = upload_stemcell(cpi_for_stemcell, @config.stemcell_path)
       expect(@stemcell_id).to_not be_nil
 
-      @image = openstack.image.images.find { |image| image.id == @stemcell_id }
+      @image = huaweicloud.image.images.find { |image| image.id == @stemcell_id }
       expect(@image).to_not be_nil
       expect(@image.name).to eq("#{stemcell_manifest['cloud_properties']['name']}/#{stemcell_manifest['cloud_properties']['version']}")
       expect(@image.is_public).to be(false)

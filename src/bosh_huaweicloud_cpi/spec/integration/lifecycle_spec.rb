@@ -19,7 +19,7 @@ describe Bosh::HuaweiCloud::Cloud do
   let(:human_readable_vm_names) { false }
   let(:use_nova_networking) { false }
   let(:enable_auto_anti_affinity) { false }
-  let(:openstack) { @config.create_huaweicloud }
+  let(:huaweicloud) { @config.create_huaweicloud }
 
   subject(:cpi) do
     @config.create_cpi(boot_from_volume: boot_from_volume, config_drive: config_drive, human_readable_vm_names: human_readable_vm_names, use_nova_networking: use_nova_networking, use_dhcp: use_dhcp, enable_auto_anti_affinity: enable_auto_anti_affinity)
@@ -80,8 +80,8 @@ describe Bosh::HuaweiCloud::Cloud do
       after { clean_up_vm(@human_readable_vm_name_id) if @human_readable_vm_name_id }
 
       it 'sets the vm name according to the metadata' do
-        vm = openstack.compute.servers.get(@human_readable_vm_name_id)
-        expect(vm.name).to eq 'openstack_cpi_spec/instance_id'
+        vm = huaweicloud.compute.servers.get(@human_readable_vm_name_id)
+        expect(vm.name).to eq 'huaweicloud_cpi_spec/instance_id'
       end
     end
   end
@@ -160,7 +160,7 @@ describe Bosh::HuaweiCloud::Cloud do
 
         @multiple_nics_vm_id = create_vm(@stemcell_id, multiple_network_spec, [])
 
-        vm = openstack.compute.servers.get(@multiple_nics_vm_id)
+        vm = huaweicloud.compute.servers.get(@multiple_nics_vm_id)
         network_interfaces = vm.addresses.map { |_, network_interfaces| network_interfaces }.flatten
         network_interface_1 = network_interfaces.find(&where_ip_address_is(@config.no_dhcp_manual_ip_1))
         network_interface_2 = network_interfaces.find(&where_ip_address_is(@config.no_dhcp_manual_ip_2))
@@ -168,9 +168,9 @@ describe Bosh::HuaweiCloud::Cloud do
         expect(network_interface_1['OS-EXT-IPS-MAC:mac_addr']).to eq(registry_settings['networks']['network_1']['mac'])
         expect(network_interface_2['OS-EXT-IPS-MAC:mac_addr']).to eq(registry_settings['networks']['network_2']['mac'])
 
-        ports = openstack.network.ports.all(device_id: @multiple_nics_vm_id)
+        ports = huaweicloud.network.ports.all(device_id: @multiple_nics_vm_id)
         clean_up_vm(@multiple_nics_vm_id) if @multiple_nics_vm_id
-        expect(ports.find { |port| openstack.network.ports.get port.id }).to be_nil
+        expect(ports.find { |port| huaweicloud.network.ports.get port.id }).to be_nil
       end
 
       def where_ip_address_is(ip)
@@ -183,8 +183,8 @@ describe Bosh::HuaweiCloud::Cloud do
       after { clean_up_vm(@vm_with_vrrp_ip) if @vm_with_vrrp_ip }
 
       it 'adds vrrp_ip as allowed_address_pairs' do
-        vrrp_port = openstack.network.ports.all(fixed_ips: "ip_address=#{@config.manual_ip}")[0]
-        port_info = openstack.network.get_port(vrrp_port.id)
+        vrrp_port = huaweicloud.network.ports.all(fixed_ips: "ip_address=#{@config.manual_ip}")[0]
+        port_info = huaweicloud.network.get_port(vrrp_port.id)
         expect(port_info).to be
 
         allowed_address_pairs = port_info[:body]['port']['allowed_address_pairs']
@@ -336,13 +336,13 @@ describe Bosh::HuaweiCloud::Cloud do
     end
 
     def no_active_vm_with_ip?(ip)
-      openstack.compute.servers.none? do |s|
+      huaweicloud.compute.servers.none? do |s|
         s.private_ip_address == ip && [:active].include?(s.state.downcase.to_sym)
       end
     end
 
     def no_port_remaining?(subnet_id, ip)
-      openstack.network.ports
+      huaweicloud.network.ports
                .select { |port| port.network_id == subnet_id }
                .none? { |port| port.fixed_ips.detect { |ips| ips['ip_address'] == ip } }
     end
@@ -478,12 +478,12 @@ describe Bosh::HuaweiCloud::Cloud do
     end
 
     it 'sets the disk metadata accordingly' do
-      disk = openstack.volume.volumes.get(@disk_id)
+      disk = huaweicloud.volume.volumes.get(@disk_id)
       expect(disk.metadata).not_to include(metadata)
 
       cpi.set_disk_metadata(@disk_id, metadata)
 
-      disk = openstack.volume.volumes.get(@disk_id)
+      disk = huaweicloud.volume.volumes.get(@disk_id)
       expect(disk.metadata).to include(metadata)
     end
   end
@@ -507,24 +507,24 @@ describe Bosh::HuaweiCloud::Cloud do
 
     before(:each) do
       allow(Bosh::Clouds::Config).to receive(:uuid).and_return('fake-uuid')
-      remove_server_groups(openstack)
+      remove_server_groups(huaweicloud)
     end
 
     after do
       clean_up_vm(@server_groups_vm_id) if @server_groups_vm_id
-      remove_server_groups(openstack)
+      remove_server_groups(huaweicloud)
     end
 
     it 'creates a server group' do
       @server_groups_vm_id = create_vm(@stemcell_id, network_spec, [])
-      vm_server_groups = openstack.compute.server_groups.all.select { |g| g.name == 'fake-uuid-instance-group-1' }
+      vm_server_groups = huaweicloud.compute.server_groups.all.select { |g| g.name == 'fake-uuid-instance-group-1' }
       expect(vm_server_groups.size).to eq(1)
       expect(vm_server_groups.first.members).to include(@server_groups_vm_id)
     end
 
     it 'does not create a server group if instance group is missing from environment' do
       @server_groups_vm_id = create_vm(@stemcell_id, network_spec, [], {}, {})
-      expect(openstack.compute.server_groups.all).to be_empty
+      expect(huaweicloud.compute.server_groups.all).to be_empty
     end
   end
 
@@ -535,7 +535,7 @@ describe Bosh::HuaweiCloud::Cloud do
     it 'resizes the disk' do
       cpi.resize_disk(@disk_id, 4096)
 
-      disk = openstack.volume.volumes.get(@disk_id)
+      disk = huaweicloud.volume.volumes.get(@disk_id)
       expect(disk.size).to eq(4)
     end
   end

@@ -90,7 +90,7 @@ module Bosh::HuaweiCloud
         rescue Excon::Error::Timeout => e
           @logger.debug(e.backtrace)
           cloud_error_message = "VM creation with name '#{create_vm_params[:name]}' received a timeout. " \
-                                "The VM might still have been created by OpenStack.\nOriginal message: "
+                                "The VM might still have been created by HuaweiCloud.\nOriginal message: "
           raise Bosh::Clouds::VMCreationFailed.new(false), cloud_error_message + e.message
         rescue Excon::Error::BadRequest, Excon::Error::NotFound, Fog::Compute::HuaweiCloud::NotFound => e
           raise e if @huaweicloud.use_nova_networking?
@@ -195,7 +195,7 @@ module Bosh::HuaweiCloud
 
     ##
     # Generates initial agent settings. These settings will be read by Bosh Agent from Bosh Registry on a target
-    # server. Disk conventions in Bosh Agent for OpenStack are:
+    # server. Disk conventions in Bosh Agent for HuaweiCloud are:
     # - system disk: /dev/sda
     # - ephemeral disk: /dev/sdb
     # - persistent disks: /dev/sdc through /dev/sdz

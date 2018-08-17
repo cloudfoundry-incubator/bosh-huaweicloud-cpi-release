@@ -32,7 +32,7 @@ module Bosh::HuaweiCloud
             raise error
           rescue Excon::Error::BadRequest => error
             if error.message.match(/Invalid input.*'soft-anti-affinity' is not one of/)
-              message = "Auto-anti-affinity is only supported on OpenStack Mitaka or higher. Please upgrade or set 'openstack.enable_auto_anti_affinity=false'."
+              message = "Auto-anti-affinity is only supported on HuaweiCloud Mitaka or higher. Please upgrade or set 'huaweicloud.enable_auto_anti_affinity=false'."
               cloud_error(message, error)
             end
             raise error
@@ -53,7 +53,7 @@ module Bosh::HuaweiCloud
     private
 
     def lock_by_file(bosh_group)
-      lock_folder = File.join(Dir.tmpdir, 'openstack-server-groups')
+      lock_folder = File.join(Dir.tmpdir, 'huaweicloud-server-groups')
       FileUtils.mkdir_p(lock_folder)
       File.open(File.join(lock_folder, "#{bosh_group}.lock"), 'w') do |f|
         f.flock(File::LOCK_EX)

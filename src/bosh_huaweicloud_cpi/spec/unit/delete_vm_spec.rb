@@ -70,7 +70,7 @@ describe Bosh::HuaweiCloud::Cloud do
     end
   end
 
-  it 'deletes an OpenStack server after removing the lbaas pool membership' do
+  it 'deletes an HuaweiCloud server after removing the lbaas pool membership' do
     cloud.delete_vm('i-foobar')
 
     expect(loadbalancer_configurator).to have_received(:cleanup_memberships).with(

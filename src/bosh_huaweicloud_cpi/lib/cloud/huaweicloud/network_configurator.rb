@@ -1,10 +1,10 @@
 module Bosh::HuaweiCloud
   ##
-  # Represents OpenStack server network config. OpenStack server has single NIC
+  # Represents HuaweiCloud server network config. HuaweiCloud server has single NIC
   # with a dynamic or manual IP's address and (optionally) a single floating
   # IP address which server itself is not aware of (vip). Thus we should
   # perform a number of sanity checks for the network spec provided by director
-  # to make sure we don't apply something OpenStack doesn't understand how to
+  # to make sure we don't apply something HuaweiCloud doesn't understand how to
   # deal with.
   class NetworkConfigurator
     include Helpers
@@ -39,12 +39,12 @@ module Bosh::HuaweiCloud
       return unless multiple_private_networks?
 
       if use_nova_networking
-        error_message = "Multiple manual networks can only be used with 'openstack.use_nova_networking=false'. Multiple networks require Neutron."
+        error_message = "Multiple manual networks can only be used with 'huaweicloud.use_nova_networking=false'. Multiple networks require Neutron."
         raise Bosh::Clouds::VMCreationFailed.new(false), error_message
       end
 
       if use_dhcp || !config_drive
-        error_message = "Multiple manual networks can only be used with 'openstack.use_dhcp=false' and 'openstack.config_drive=cdrom|disk'"
+        error_message = "Multiple manual networks can only be used with 'huaweicloud.use_dhcp=false' and 'huaweicloud.config_drive=cdrom|disk'"
         raise Bosh::Clouds::VMCreationFailed.new(false), error_message
       end
     end
@@ -106,7 +106,7 @@ module Bosh::HuaweiCloud
         @vip_network = VipNetwork.new(name, network_spec)
         @security_groups += extract_security_groups(network_spec)
       else
-        cloud_error("Invalid network type `#{network_type}': OpenStack " \
+        cloud_error("Invalid network type `#{network_type}': HuaweiCloud " \
                     "CPI can only handle `dynamic', 'manual' or `vip' " \
                     'network types')
       end
@@ -160,7 +160,7 @@ module Bosh::HuaweiCloud
     # Applies network configuration to the vm
     #
     # @param [Bosh::HuaweiCloud::Huawei] huaweicloud
-    # @param [Fog::Compute::HuaweiCloud::Server] server OpenStack server to
+    # @param [Fog::Compute::HuaweiCloud::Server] server HuaweiCloud server to
     #   configure
     def configure(huaweicloud, server)
       @networks.each do |network|

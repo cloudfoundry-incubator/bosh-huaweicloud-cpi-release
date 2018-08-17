@@ -10,7 +10,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
 
       before do
         Timecop.freeze
-        allow(network).to receive(openstack_method_name, &raise_times(2))
+        allow(network).to receive(huaweicloud_method_name, &raise_times(2))
         allow(huaweicloud).to receive(:state_timeout).and_return(state_timeout)
       end
 
@@ -19,7 +19,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
       end
 
       it 'attempts to change resource again after load balancer has become active again' do
-        expect(network).to receive(openstack_method_name).exactly(3)
+        expect(network).to receive(huaweicloud_method_name).exactly(3)
         expect(huaweicloud).to receive(:wait_resource).exactly(4)
 
         action.call
@@ -43,7 +43,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
         let(:state_timeout) { time_increment * expected_retries }
 
         before do
-          allow(network).to receive(openstack_method_name, &raise_times(expected_retries))
+          allow(network).to receive(huaweicloud_method_name, &raise_times(expected_retries))
           Timecop.freeze(start_time)
           allow(huaweicloud).to receive(:wait_resource) do
             Timecop.freeze(Time.now + time_increment)
@@ -55,7 +55,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
             action.call
           }.to raise_error Bosh::Clouds::CloudError, /Reason: Bosh::Clouds::CloudError Failed after #{expected_retries}.0s with #{expected_retries} attempts with 'omg pending_update'/
 
-          expect(network).to have_received(openstack_method_name).exactly(expected_retries)
+          expect(network).to have_received(huaweicloud_method_name).exactly(expected_retries)
           expect(huaweicloud).to have_received(:wait_resource).exactly(expected_retries)
         end
       end
@@ -244,7 +244,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
 
       it_behaves_like('changing load balancer resource') do
         let(:success_response) { double('lb_member', body: { 'member' => { 'id' => 'member-id' } }) }
-        let(:openstack_method_name) { :create_lbaas_pool_member }
+        let(:huaweicloud_method_name) { :create_lbaas_pool_member }
         let(:action) {
           -> { subject.create_membership('pool-id', 'wrong-ip', '8080', 'subnet-id') }
         }
@@ -487,7 +487,7 @@ describe Bosh::HuaweiCloud::LoadbalancerConfigurator do
 
     it_behaves_like('changing load balancer resource') do
       let(:success_response) { double('lb_member', body: { 'member' => { 'id' => 'member-id' } }) }
-      let(:openstack_method_name) { :delete_lbaas_pool_member }
+      let(:huaweicloud_method_name) { :delete_lbaas_pool_member }
       let(:action) {
         -> { subject.remove_vm_from_pool(pool_id, membership_id) }
       }

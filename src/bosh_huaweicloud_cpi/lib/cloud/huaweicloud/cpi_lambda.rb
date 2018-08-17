@@ -9,11 +9,11 @@ module Bosh::HuaweiCloud
         cloud_properties = cpi_config['cloud']['properties']
         cloud_properties['cpi_log'] = cpi_log
 
-        # If 'ca_cert' is set in job config we render non-empty `config/openstack.crt` (excon needs it as a file)
+        # If 'ca_cert' is set in job config we render non-empty `config/huaweicloud.crt` (excon needs it as a file)
         connection_options = cloud_properties['huaweicloud']['connection_options']
         connection_options['ssl_ca_file'] = ca_cert_from_config if connection_options&.delete('ca_cert')
 
-        # allow openstack config to be overwritten dynamically by context
+        # allow huaweicloud config to be overwritten dynamically by context
         cloud_properties['huaweicloud'].merge!(context)
 
         # write ca cert to disk if given in context

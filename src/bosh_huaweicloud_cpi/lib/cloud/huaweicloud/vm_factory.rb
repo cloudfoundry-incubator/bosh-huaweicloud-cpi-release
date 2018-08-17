@@ -2,14 +2,14 @@ module Bosh::HuaweiCloud
   class VmFactory
     include Helpers
 
-    def initialize(huaweicloud, server, create_vm_params, disk_locality, az_provider, openstack_properties)
+    def initialize(huaweicloud, server, create_vm_params, disk_locality, az_provider, huaweicloud_properties)
       @huaweicloud = huaweicloud
       @server = server
 
       @create_vm_params = create_vm_params
       @disk_locality = disk_locality
       @az_provider = az_provider
-      @openstack_properties = openstack_properties
+      @huaweicloud_properties = huaweicloud_properties
 
       @logger = Bosh::Clouds::Config.logger
     end
@@ -37,7 +37,7 @@ module Bosh::HuaweiCloud
 
     def pick_security_groups(server_params, resource_pool_groups, network_configurator)
       network_configurator.check_preconditions(@huaweicloud.use_nova_networking?, @create_vm_params[:config_drive], @server.use_dhcp)
-      network_configurator.pick_groups(@huaweicloud, @openstack_properties.default_security_groups, resource_pool_groups)
+      network_configurator.pick_groups(@huaweicloud, @huaweicloud_properties.default_security_groups, resource_pool_groups)
       server_params[:security_groups] = network_configurator.picked_security_groups.map(&:name)
     end
 
@@ -68,7 +68,7 @@ module Bosh::HuaweiCloud
     end
 
     def pick_key_name(server_params, resource_pool)
-      keyname = resource_pool['key_name'] || @openstack_properties.default_key_name
+      keyname = resource_pool['key_name'] || @huaweicloud_properties.default_key_name
       validate_key_exists(keyname)
       server_params[:key_name] = keyname
     end
@@ -80,7 +80,7 @@ module Bosh::HuaweiCloud
     end
 
     def pick_server_groups(server_params, environment)
-      return unless @openstack_properties.enable_auto_anti_affinity
+      return unless @huaweicloud_properties.enable_auto_anti_affinity
       bosh_group = environment.dig('bosh', 'group')
       return unless bosh_group
 
@@ -97,7 +97,7 @@ module Bosh::HuaweiCloud
 
     def configure_volumes(server_params, flavor, resource_pool)
       volume_configurator = Bosh::HuaweiCloud::VolumeConfigurator.new(@logger)
-      return unless volume_configurator.boot_from_volume?(@openstack_properties.boot_from_volume, resource_pool)
+      return unless volume_configurator.boot_from_volume?(@huaweicloud_properties.boot_from_volume, resource_pool)
 
       boot_vol_size = volume_configurator.select_boot_volume_size(flavor, resource_pool)
       server_params[:block_device_mapping_v2] = [{
@@ -113,9 +113,9 @@ module Bosh::HuaweiCloud
     end
 
     ##
-    # Checks if the OpenStack flavor has ephemeral disk
+    # Checks if the HuaweiCloud flavor has ephemeral disk
     #
-    # @param [Fog::Compute::HuaweiCloud::Flavor] OpenStack flavor
+    # @param [Fog::Compute::HuaweiCloud::Flavor] HuaweiCloud flavor
     # @return [Boolean] true if flavor has ephemeral disk, false otherwise
     def flavor_has_ephemeral_disk?(flavor)
       flavor.ephemeral && flavor.ephemeral.to_i > 0

@@ -4,7 +4,7 @@ module Bosh::HuaweiCloud
   class Huawei
     include Helpers
 
-    DEFAULT_STATE_TIMEOUT = 300 # Default timeout for target state (in seconds)
+    DEFAULT_STATE_TIMEOUT = 3000 # Default timeout for target state (in seconds)
     MAX_RETRIES = 10 # Max number of retries
     DEFAULT_RETRY_TIMEOUT = 3 # Default timeout before retrying a call (in seconds)
 
@@ -90,7 +90,7 @@ module Bosh::HuaweiCloud
     end
 
     def project_name
-      is_v3 ? params[:openstack_project_name] : params[:openstack_tenant]
+      is_v3 ? params[:huaweicloud_project_name] : params[:huaweicloud_tenant]
     end
 
     def use_nova_networking?

@@ -4,7 +4,7 @@ describe Bosh::HuaweiCloud::ServerGroups do
   let(:logger) { instance_double(Logger, error: nil) }
 
   let(:lock_file_folder) {
-    File.join(Dir.tmpdir, 'openstack-server-groups')
+    File.join(Dir.tmpdir, 'huaweicloud-server-groups')
   }
 
   let(:bosh_group) {
@@ -153,7 +153,7 @@ describe Bosh::HuaweiCloud::ServerGroups do
     end
   end
 
-  context "when OpenStack does not support 'soft-anti-affinity'" do
+  context "when HuaweiCloud does not support 'soft-anti-affinity'" do
     before(:each) do
       allow(fog_server_groups).to receive(:create).and_raise(Excon::Error::BadRequest.new("Invalid input for field/attribute 0. Value: soft-anti-affinity. u'soft-anti-affinity' is not one of ['anti-affinity', 'affinity']"))
     end
@@ -162,7 +162,7 @@ describe Bosh::HuaweiCloud::ServerGroups do
       message_logged = false
       exception_logged = false
       allow(logger).to receive(:error) do |arg|
-        if arg == "Auto-anti-affinity is only supported on OpenStack Mitaka or higher. Please upgrade or set 'openstack.enable_auto_anti_affinity=false'."
+        if arg == "Auto-anti-affinity is only supported on HuaweiCloud Mitaka or higher. Please upgrade or set 'huaweicloud.enable_auto_anti_affinity=false'."
           message_logged = true
         elsif arg.is_a? Excon::Error::BadRequest
           exception_logged = true
@@ -171,7 +171,7 @@ describe Bosh::HuaweiCloud::ServerGroups do
 
       expect {
         server_groups.find_or_create('fake-uuid', bosh_group)
-      }.to raise_error(Bosh::Clouds::CloudError, "Auto-anti-affinity is only supported on OpenStack Mitaka or higher. Please upgrade or set 'openstack.enable_auto_anti_affinity=false'.")
+      }.to raise_error(Bosh::Clouds::CloudError, "Auto-anti-affinity is only supported on HuaweiCloud Mitaka or higher. Please upgrade or set 'huaweicloud.enable_auto_anti_affinity=false'.")
       expect(message_logged).to be(true)
       expect(exception_logged).to be(true)
     end

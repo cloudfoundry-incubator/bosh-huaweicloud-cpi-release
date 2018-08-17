@@ -1,10 +1,10 @@
 require 'spec_helper'
 
 describe Bosh::HuaweiCloud::Huawei do
-  let(:openstack_options_v2) { mock_cloud_options['properties']['huaweicloud'] }
-  let(:openstack_options_v3) { mock_cloud_options(3)['properties']['huaweicloud'] }
-  let(:openstack_options) { openstack_options_v2 }
-  subject(:subject) { Bosh::HuaweiCloud::Huawei.new(openstack_options) }
+  let(:huaweicloud_options_v2) { mock_cloud_options['properties']['huaweicloud'] }
+  let(:huaweicloud_options_v3) { mock_cloud_options(3)['properties']['huaweicloud'] }
+  let(:huaweicloud_options) { huaweicloud_options_v2 }
+  subject(:subject) { Bosh::HuaweiCloud::Huawei.new(huaweicloud_options) }
 
   describe 'is_v3' do
     it 'should identify keystone v3 URIs' do
@@ -24,7 +24,7 @@ describe Bosh::HuaweiCloud::Huawei do
       end
 
       context 'when auth_url is v3' do
-        let(:openstack_options) { openstack_options_v3 }
+        let(:huaweicloud_options) { huaweicloud_options_v3 }
 
         it 'should update the auth_url with tokens' do
           expect(subject.auth_url).to eq('http://127.0.0.1:5000/v3/auth/tokens')
@@ -35,7 +35,7 @@ describe Bosh::HuaweiCloud::Huawei do
     context 'when the full auth_url was specified' do
       context 'when auth_url is v2' do
         before do
-          openstack_options_v2['auth_url'] = 'http://fake-auth-url/v2.0/tokens'
+          huaweicloud_options_v2['auth_url'] = 'http://fake-auth-url/v2.0/tokens'
         end
 
         it 'does not change auth_url option' do
@@ -44,9 +44,9 @@ describe Bosh::HuaweiCloud::Huawei do
       end
 
       context 'when auth_url is v3' do
-        let(:openstack_options) { openstack_options_v3 }
+        let(:huaweicloud_options) { huaweicloud_options_v3 }
         before do
-          openstack_options_v3['auth_url'] = 'http://fake-auth-url/v3/auth/tokens'
+          huaweicloud_options_v3['auth_url'] = 'http://fake-auth-url/v3/auth/tokens'
         end
 
         it 'does not change auth_url option' do
@@ -56,7 +56,7 @@ describe Bosh::HuaweiCloud::Huawei do
 
       context 'and it ends with a slash' do
         before do
-          openstack_options_v2['auth_url'] = 'http://fake-auth-url/v2.0/'
+          huaweicloud_options_v2['auth_url'] = 'http://fake-auth-url/v2.0/'
         end
 
         it 'removes the trailing slash' do
@@ -68,7 +68,7 @@ describe Bosh::HuaweiCloud::Huawei do
     context 'excon instrumentor' do
       context 'default instrumentor' do
         it 'set the default instrumentor' do
-          huaweicloud = Bosh::HuaweiCloud::Huawei.new(openstack_options)
+          huaweicloud = Bosh::HuaweiCloud::Huawei.new(huaweicloud_options)
 
           expect(huaweicloud.params[:connection_options]['instrumentor']).to eq(Bosh::HuaweiCloud::ExconLoggingInstrumentor)
         end
@@ -76,7 +76,7 @@ describe Bosh::HuaweiCloud::Huawei do
 
       context 'no instrumentor' do
         it 'set the default instrumentor' do
-          huaweicloud = Bosh::HuaweiCloud::Huawei.new(openstack_options, {}, {})
+          huaweicloud = Bosh::HuaweiCloud::Huawei.new(huaweicloud_options, {}, {})
 
           expect(huaweicloud.params[:connection_options].key?('instrumentor')).to be(false)
         end
@@ -86,23 +86,23 @@ describe Bosh::HuaweiCloud::Huawei do
 
   describe :use_nova_networking? do
     context 'when the manifest contains `use_nova_networking=true`' do
-      let(:openstack_options_with_nova) { openstack_options_v3['use_nova_networking'] = true; openstack_options_v3 }
-      let(:openstack_options) { openstack_options_with_nova }
+      let(:huaweicloud_options_with_nova) { huaweicloud_options_v3['use_nova_networking'] = true; huaweicloud_options_v3 }
+      let(:huaweicloud_options) { huaweicloud_options_with_nova }
       it 'returns true' do
         expect(subject.use_nova_networking?).to eq(true)
       end
     end
 
     context 'when the manifest contains `use_nova_networking=false`' do
-      let(:openstack_options_with_nova) { openstack_options_v3['use_nova_networking'] = false; openstack_options_v3 }
-      let(:openstack_options) { openstack_options_with_nova }
+      let(:huaweicloud_options_with_nova) { huaweicloud_options_v3['use_nova_networking'] = false; huaweicloud_options_v3 }
+      let(:huaweicloud_options) { huaweicloud_options_with_nova }
       it 'returns false' do
         expect(subject.use_nova_networking?).to eq(false)
       end
     end
 
     context 'when the manifest does not contain `use_nova_networking`' do
-      let(:openstack_options) { openstack_options_v3 }
+      let(:huaweicloud_options) { huaweicloud_options_v3 }
       it 'returns false' do
         expect(subject.use_nova_networking?).to eq(false)
       end
@@ -114,7 +114,7 @@ describe Bosh::HuaweiCloud::Huawei do
       it 'raises a CloudError exception if cannot connect to the service API' do
         allow(Fog::Network).to receive(:new).and_raise(Fog::Errors::NotFound, 'Not found message')
         expect {
-          Bosh::HuaweiCloud::Huawei.new(openstack_options).network
+          Bosh::HuaweiCloud::Huawei.new(huaweicloud_options).network
         }.to raise_error(Bosh::Clouds::CloudError,
                          'Unable to connect to the HuaweiCloud Network Service API: Not found message. Check task debug log for details.')
       end
@@ -135,7 +135,7 @@ describe Bosh::HuaweiCloud::Huawei do
         it 'raises a CloudError exception if cannot connect to the service API 5 times' do
           allow(fog[:clazz]).to receive(:new).and_raise(Excon::Error::Unauthorized, 'Unauthorized')
           expect {
-            Bosh::HuaweiCloud::Huawei.new(openstack_options, retry_options_overwrites).send(fog[:method_name])
+            Bosh::HuaweiCloud::Huawei.new(huaweicloud_options, retry_options_overwrites).send(fog[:method_name])
           }.to raise_error(Bosh::Clouds::CloudError,
                            "Unable to connect to the HuaweiCloud #{fog[:name]} Service API: Unauthorized. Check task debug log for details.")
         end
@@ -143,13 +143,13 @@ describe Bosh::HuaweiCloud::Huawei do
 
       context 'when the backend call raises a SocketError' do
         let(:socket_error) { Excon::Error::Socket.new(SocketError.new('getaddrinfo: nodename nor servname provided, or not known')) }
-        let(:expected_error_message) { "Unable to connect to the HuaweiCloud Keystone API #{openstack_options['auth_url']}/tokens\ngetaddrinfo: nodename nor servname provided, or not known (SocketError)" }
+        let(:expected_error_message) { "Unable to connect to the HuaweiCloud Keystone API #{huaweicloud_options['auth_url']}/tokens\ngetaddrinfo: nodename nor servname provided, or not known (SocketError)" }
 
         it 'raises a CloudError exception enriched with the targeted HuaweiCloud KeyStone API url for service API' do
           allow(fog[:clazz]).to receive(:new).and_raise(socket_error)
 
           expect {
-            Bosh::HuaweiCloud::Huawei.new(openstack_options, retry_options_overwrites).send(fog[:method_name])
+            Bosh::HuaweiCloud::Huawei.new(huaweicloud_options, retry_options_overwrites).send(fog[:method_name])
           }.to raise_error(Bosh::Clouds::CloudError, expected_error_message)
         end
       end
@@ -164,20 +164,20 @@ describe Bosh::HuaweiCloud::Huawei do
         }
 
         it 'should add optional options to the Fog connection' do
-          openstack_options['connection_options'] = connection_options
+          huaweicloud_options['connection_options'] = connection_options
 
           allow(fog[:clazz]).to receive(:new).and_return(instance_double(fog[:clazz]))
-          Bosh::HuaweiCloud::Huawei.new(openstack_options).send(fog[:method_name])
+          Bosh::HuaweiCloud::Huawei.new(huaweicloud_options).send(fog[:method_name])
 
           expect(fog[:clazz]).to have_received(:new).with(hash_including(connection_options: merged_connection_options))
         end
       end
 
       context 'when keystone V3 API is used' do
-        let(:openstack_options) { openstack_options_v3 }
+        let(:huaweicloud_options) { huaweicloud_options_v3 }
         it 'should add optional options to the Fog connection' do
           allow(fog[:clazz]).to receive(:new).and_return(instance_double(fog[:clazz]))
-          Bosh::HuaweiCloud::Huawei.new(openstack_options).send(fog[:method_name])
+          Bosh::HuaweiCloud::Huawei.new(huaweicloud_options).send(fog[:method_name])
 
           expect(fog[:clazz]).to have_received(:new).with(hash_including(huaweicloud_project_name: 'admin'))
           expect(fog[:clazz]).to have_received(:new).with(hash_including(huaweicloud_domain_name: 'some_domain'))
@@ -187,7 +187,7 @@ describe Bosh::HuaweiCloud::Huawei do
       context 'when keystone V2 API is used' do
         it 'should add optional options to the Fog connection' do
           allow(fog[:clazz]).to receive(:new).and_return(instance_double(fog[:clazz]))
-          Bosh::HuaweiCloud::Huawei.new(openstack_options).send(fog[:method_name])
+          Bosh::HuaweiCloud::Huawei.new(huaweicloud_options).send(fog[:method_name])
 
           expect(fog[:clazz]).to have_received(:new).with(hash_including(huaweicloud_tenant: 'admin'))
         end
@@ -207,7 +207,7 @@ describe Bosh::HuaweiCloud::Huawei do
 
         it 'does not raise a GatewayTimeout error' do
           expect {
-            Bosh::HuaweiCloud::Huawei.new(openstack_options)
+            Bosh::HuaweiCloud::Huawei.new(huaweicloud_options)
           }.to_not raise_error
         end
       end
@@ -215,7 +215,7 @@ describe Bosh::HuaweiCloud::Huawei do
       context 'when used multiple times' do
         it 'creates the connection lazy and caches it' do
           expect(fog[:clazz]).to receive(:new).once.and_return(instance_double(fog[:clazz]))
-          huaweicloud = Bosh::HuaweiCloud::Huawei.new(openstack_options)
+          huaweicloud = Bosh::HuaweiCloud::Huawei.new(huaweicloud_options)
 
           fog_class_1st_call = huaweicloud.send(fog[:method_name])
           fog_class_2nd_call = huaweicloud.send(fog[:method_name])
@@ -645,12 +645,12 @@ describe Bosh::HuaweiCloud::Huawei do
 
     context 'when huaweicloud raises Fog::Errors::NotFound' do
       it 'should raise a CloudError with the original HuaweiCloud message' do
-        openstack_error_message = 'Could not find service network. Have compute, compute_legacy, identity, image, volume, volumev2'
+        huaweicloud_error_message = 'Could not find service network. Have compute, compute_legacy, identity, image, volume, volumev2'
 
         expect {
-          subject.with_huaweicloud { raise Fog::Errors::NotFound, openstack_error_message }
+          subject.with_huaweicloud { raise Fog::Errors::NotFound, huaweicloud_error_message }
         }.to raise_error(Bosh::Clouds::CloudError,
-                         "HuaweiCloud API service not found error: #{openstack_error_message}\nCheck task debug log for details.")
+                         "HuaweiCloud API service not found error: #{huaweicloud_error_message}\nCheck task debug log for details.")
       end
     end
 
@@ -703,7 +703,7 @@ describe Bosh::HuaweiCloud::Huawei do
     end
   end
 
-  describe 'parse_openstack_response' do
+  describe 'parse_huaweicloud_response' do
     it 'should return nil if response has no body' do
       response = Excon::Response.new
 

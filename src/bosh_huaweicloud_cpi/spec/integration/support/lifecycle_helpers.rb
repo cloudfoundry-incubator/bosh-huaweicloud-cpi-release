@@ -54,7 +54,7 @@ module Support
       @config.logger.info("Setting VM metadata vm_id=#{vm_id}")
       cpi.set_vm_metadata(vm_id, {
         'deployment' => 'deployment',
-        'name' => 'openstack_cpi_spec/instance_id',
+        'name' => 'huaweicloud_cpi_spec/instance_id',
       })
 
       vm_id
@@ -85,7 +85,7 @@ module Support
       @config.logger.info("Creating disk snapshot disk_id=#{disk_id}")
       disk_snapshot_id = cpi.snapshot_disk(disk_id, {
         deployment: 'deployment',
-        job: 'openstack_cpi_spec',
+        job: 'huaweicloud_cpi_spec',
         index: '0',
         instance_id: 'instance',
         agent_id: 'agent',

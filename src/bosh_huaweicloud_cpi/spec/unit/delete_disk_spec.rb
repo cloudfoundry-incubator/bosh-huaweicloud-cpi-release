@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe Bosh::HuaweiCloud::Cloud do
-  it 'deletes an OpenStack volume' do
+  it 'deletes an HuaweiCloud volume' do
     volume = double('volume', id: 'v-foobar')
 
     cloud = mock_cloud do |fog|
@@ -16,7 +16,7 @@ describe Bosh::HuaweiCloud::Cloud do
     cloud.delete_disk('v-foobar')
   end
 
-  it "doesn't delete an OpenStack volume unless it's state is `available'" do
+  it "doesn't delete an HuaweiCloud volume unless it's state is `available'" do
     volume = double('volume', id: 'v-foobar')
 
     cloud = mock_cloud do |fog|

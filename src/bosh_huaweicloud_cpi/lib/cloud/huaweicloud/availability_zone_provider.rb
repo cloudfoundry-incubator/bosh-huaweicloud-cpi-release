@@ -11,7 +11,7 @@ module Bosh::HuaweiCloud
       single_az = cloud_properties.key?('availability_zone')
       multiple_azs = cloud_properties.key?('availability_zones')
       cloud_error('Invalid cloud_properties: only one property of "availability_zone" and "availability_zones" allowed.') if single_az && multiple_azs
-      cloud_error('Cannot use multiple azs without openstack.ignore_server_availability_zone') if use_server_availability_zone? && multiple_azs
+      cloud_error('Cannot use multiple azs without huaweicloud.ignore_server_availability_zone') if use_server_availability_zone? && multiple_azs
       return true if multiple_azs
       false
     end
@@ -46,7 +46,7 @@ module Bosh::HuaweiCloud
 
     def fail_for_different_azs(resource_pool_az, volumes)
       cloud_error format("can't use multiple availability zones: %s, %s. " +
-          "Enable 'openstack.ignore_server_availability_zone' to allow VMs and disks to be in different AZs, or use the same AZ for both.",
+          "Enable 'huaweicloud.ignore_server_availability_zone' to allow VMs and disks to be in different AZs, or use the same AZ for both.",
           resource_pool_az_description(resource_pool_az), disk_az_description(volumes))
     end
 

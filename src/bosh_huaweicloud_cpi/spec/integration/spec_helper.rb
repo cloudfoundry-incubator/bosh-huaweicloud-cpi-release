@@ -12,9 +12,9 @@ RSpec.configure do |config|
   config.before(:all) { WebMock.allow_net_connect! }
 end
 
-def remove_server_groups(openstack)
-  openstack.compute.server_groups.all.each do |server_group|
-    openstack.compute.delete_server_group(server_group.id)
+def remove_server_groups(huaweicloud)
+  huaweicloud.compute.server_groups.all.each do |server_group|
+    huaweicloud.compute.delete_server_group(server_group.id)
   end
 end
 
