@@ -10,7 +10,7 @@ which is a standard Bosh HuaweiCloud CPI. BOSH-Huaweicloud-CPI has added some en
 
 ## Enhancements
 
-- **Network**: fully supporting huaweicloud network resources, including vpc, subnet, nic and so on.
+- **Network**: fully supporting huaweicloud network resources, including vpc, subnet, nic and so on
 
 Maintainers
 -----------
