@@ -7,6 +7,7 @@ bosh-huaweicloud-cpi-release is a bosh Provider for Huaweicloud.
 It is based on [bosh-huaweicloud-cpi-release](https://github.com/cloudfoundry-incubator/bosh-huaweicloud-cpi-release)
 which is a standard Bosh HuaweiCloud CPI. BOSH-Huaweicloud-CPI has added some enhancements to interact with the many resources supported by Huaweicloud.
 
+PR TEST CI
 
 ## Enhancements
 
