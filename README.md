@@ -52,7 +52,7 @@ $ git clone https://github.com/zhongjun2/bosh-deployment.git
 $ cd bosh-deployment
 ```
 
-use this command, modify the parameters
+use this command, modify the parameters.
 
 ```
 bosh create-env bosh-deployment/bosh.yml --state=state.json \
