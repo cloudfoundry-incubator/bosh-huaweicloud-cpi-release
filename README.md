@@ -78,4 +78,4 @@ bosh create-env bosh-deployment/bosh.yml --state=state.json \
 Backlog
 =========
 
-The planned future work listed on [github issues with enhancement lable](https://github.com/zhongjun2/bosh-huaweicloud-cpi-release/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement)
+The planned future work listed on [github issues with enhancement lable.](https://github.com/zhongjun2/bosh-huaweicloud-cpi-release/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement)
