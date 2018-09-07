@@ -74,3 +74,8 @@ bosh create-env bosh-deployment/bosh.yml --state=state.json \
  -v huaweicloud_project=cn-north-1 \
  -v private_key=bosh.pem
 ```
+
+Backlog
+=========
+
+The planned future work listed on [github issues with enhancement lable](https://github.com/zhongjun2/bosh-huaweicloud-cpi-release/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement)
