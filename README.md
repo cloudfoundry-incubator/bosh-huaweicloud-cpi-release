@@ -15,6 +15,7 @@ The Huaweicloud CPI is designed for user most familiar with the Huawei cloud con
 
 Maintainers
 -----------
+Test CI 2
 
 This provider plugin is maintained by:
 
