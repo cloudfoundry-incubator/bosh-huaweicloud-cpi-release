@@ -8,6 +8,7 @@ It is based on [bosh-huaweicloud-cpi-release](https://github.com/cloudfoundry-in
 which is a standard Bosh HuaweiCloud CPI. BOSH-Huaweicloud-CPI has added some enhancements to interact with the many resources supported by Huaweicloud.
 
 The Huaweicloud CPI is designed for user most familiar with the Huawei cloud concepts and it only used in [Huaweicloud](https://www.huaweicloud.com/).
+The users of huawei-powered clouds that are familiar with the openstack concepts and api may choose to use [the bosh openstack cpi](https://github.com/cloudfoundry-incubator/bosh-huaweicloud-cpi-release).
 
 ## Enhancements
 
