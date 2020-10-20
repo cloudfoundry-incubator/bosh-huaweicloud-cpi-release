@@ -19,10 +19,7 @@ Maintainers
 
 This provider plugin is maintained by:
 
-* Edward Lee ([@freesky-edward](https://github.com/freesky-edward))
-* zhongjun ([@zhongjun](https://github.com/zhongjun2))
-* tommylikehu ([tommylikehu@gmail.com](https://github.com/TommyLike))
-
+* Zhenguo Niu ([@niuzhenguo](https://github.com/niuzhenguo))
 
 ### How to make release
 
